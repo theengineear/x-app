@@ -6,14 +6,17 @@
 - ^^ Could we instead have _yet another_ repository that’s an example app?
   That’s where we could have `x-todo-mvc` or some such. Then, we could have a
   hyper-simple.
-- TODO: Can we omit the “validity” check from x-switch?
+- TODO: Should we add back the “validity” check from x-switch? It would be simple
+  enough to just wrap the `document.createElement()` call in a try-catch and
+  slap an attribute on for our error state. One benefit to the error is that it
+  does _fail very loudly_ at the moment.
 - Get demo to install deps on start.
-- Add demo for x-switch.
 - Add demo for x-router.
 - Add demo for x-model.
 - Do we need to have an x-app file? It may be useful for setting things like
   the “font-family” defaults etc. Also, there is a FOUC on demo pages that use
   a _link_ versus static imports — should fix that.
+- Do we want to include “x-demo” stuff? That might be _too_ opinionated for now.
 - Should we make the “demo” >> “example” or something?
   Then, we could set up `/x-style/demo/` and `/x-style/x-style.js`, etc.
 - Write README.md — i.e., ~philosophize~.

@@ -41,6 +41,10 @@ export default class XSwitch extends HTMLElement {
         Object.assign(firstElementChild, properties);
       } else {
         firstElementChild?.remove();
+        // TODO: Note that this can throw an error when invalid:
+        //  Uncaught (in promise) DOMException: Failed to execute 'createElement'
+        //  on 'Document': The tag name provided ('not a valid tag name') is not
+        //  a valid name.
         this.append(Object.assign(document.createElement(tag), properties));
       }
     } else {

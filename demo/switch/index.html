@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>x-switch</title>
+    <script type="module" src="../../x-switch.js"></script>
+    <script type="module" src="index.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <style>[unresolved] { display: none; }</style>
+  </head>
+  <body>
+    <div>
+      <div id="controls">
+        <button id="one" type="button">one</button>
+        <button id="two" type="button">two</button>
+        <button id="three" type="button">three</button>
+        <button id="invalid" type="button">invalid</button>
+        <button id="none" type="button">none</button>
+        <label><input id="value" type="text" value="initial"></label>
+      </div>
+      <x-switch id="switch"></x-switch>
+      <div id="explainer">
+        <p>
+          The <code>x-switch</code> element allows you to <em>switch</em> between
+          different child elements based on the given tag value
+          (an <code>HTMLElement</code> tag name) and assign properties to the
+          resulting element.
+        </p>
+        <p>
+          This element does not attach a shadow root. This allows the integrator
+          to freely style whichever component is currently being rendered.
+        </p>
+        <p>
+          The <code>tag</code> property is meant to be a valid tag name.
+          It&rsquo;s reflected to improve the ability to style.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
