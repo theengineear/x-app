@@ -1,0 +1,1 @@
+import './mvc-root.js';

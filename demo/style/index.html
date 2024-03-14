@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Style Demo</title>
+    <link rel="stylesheet" href="index.css">
+    <script type="module" src="../../x-style.js"></script>
+    <script type="module" src="style-typography.js"></script>
+    <script type="module" src="style-swatch.js"></script>
+  </head>
+  <body>
+    <section>
+      <header>Typography</header>
+      <style-typography id="typography-display1" label="Display 1"></style-typography>
+      <style-typography id="typography-headline" label="Headline"></style-typography>
+      <style-typography id="typography-title" label="Title"></style-typography>
+      <style-typography id="typography-subheading" label="Subheading"></style-typography>
+      <style-typography id="typography-body1" label="Body 1"></style-typography>
+      <style-typography id="typography-body2" label="Body 2"></style-typography>
+      <style-typography id="typography-caption" label="Caption"></style-typography>
+      <style-typography id="typography-mono" label="Monospace"></style-typography>
+    </section>
+    <section>
+      <header>Color</header>
+      <div class="swatch-group">
+        <style-swatch id="swatch-gray-050" label="Gray 050"></style-swatch>
+        <style-swatch id="swatch-gray-100" label="Gray 100"></style-swatch>
+        <style-swatch id="swatch-gray-200" label="Gray 200"></style-swatch>
+        <style-swatch id="swatch-gray-300" label="Gray 300"></style-swatch>
+        <style-swatch id="swatch-gray-400" label="Gray 400"></style-swatch>
+        <style-swatch id="swatch-gray-500" label="Gray 500"></style-swatch>
+        <style-swatch id="swatch-gray-600" label="Gray 600"></style-swatch>
+        <style-swatch id="swatch-gray-700" label="Gray 700"></style-swatch>
+        <style-swatch id="swatch-gray-800" label="Gray 800"></style-swatch>
+        <style-swatch id="swatch-gray-900" label="Gray 900"></style-swatch>
+        <style-swatch id="swatch-gray-950" label="Gray 950"></style-swatch>
+      </div>
+      <div class="swatch-group">
+        <style-swatch id="swatch-white" label="White"></style-swatch>
+        <style-swatch id="swatch-black" label="Black"></style-swatch>
+      </div>
+      <div class="swatch-group">
+        <style-swatch id="swatch-cyan" label="Cyan"></style-swatch>
+      </div>
+      <div class="swatch-group">
+        <style-swatch id="swatch-magenta" label="Magenta"></style-swatch>
+      </div>
+      <div class="swatch-group">
+        <style-swatch id="swatch-yellow" label="Yellow"></style-swatch>
+      </div>
+    </section>
+    <section>
+      <header>Icons</header>
+      <div id="icon-group">
+        <div id="icon-xsmall"></div>
+        <div id="icon-small"></div>
+        <div id="icon-medium"></div>
+        <div id="icon-large"></div>
+        <div id="icon-xlarge"></div>
+      </div>
+    </section>
+    <section>
+      <header>Margins</header>
+      <div id="margin-group">
+        <div id="margin-xxsmall"></div>
+        <div id="margin-xsmall"></div>
+        <div id="margin-small"></div>
+        <div id="margin-medium"></div>
+        <div id="margin-large"></div>
+        <div id="margin-xlarge"></div>
+        <div id="margin-xxlarge"></div>
+      </div>
+    </section>
+    <section>
+      <header>Input</header>
+      <div>
+        <input type="text" value="Text input">
+      </div>
+      <div>
+        <textarea>Text area</textarea>
+      </div>
+      <div>
+        <button>Button</button>
+      </div>
+    </section>
+  </body>
+</html>

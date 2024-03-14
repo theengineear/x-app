@@ -1,0 +1,43 @@
+{
+  "name": "@theengineear/x-app",
+  "description": "minimal building blocks for web applications",
+  "version": "1.0.0-rc.1",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/theengineear/x-app",
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "start-demo": "node server.js demo",
+    "lint": "eslint --max-warnings=0 .",
+    "test": "node test.js | tap-parser -l",
+    "bump": "./bump.sh"
+  },
+  "files": [
+    "/x-controller.js",
+    "/x-model.js",
+    "/x-router.js",
+    "/x-style.js",
+    "/x-switch.js"
+  ],
+  "devDependencies": {
+    "@netflix/x-test": "^1.0.0",
+    "eslint": "^8.56.0",
+    "puppeteer": "^22.0.0",
+    "tap-parser": "^15.3.1"
+  },
+  "contributors": [
+    {
+      "name": "Andrew Seier",
+      "email": "aseier@netflix.com"
+    },
+    {
+      "name": "Casey Klebba",
+      "email": "cklebba@netflix.com"
+    }
+  ]
+}
