@@ -1,0 +1,20 @@
+body {
+  margin: 0;
+  padding: 32px;
+  color: var(--x-default-text-color);
+  font-family: var(--x-default-font-family);
+  font-size: var(--x-default-font-size);
+  font-weight: var(--x-default-font-weight);
+  line-height: var(--x-default-line-height);
+  letter-spacing: var(--x-default-letter-spacing);
+  text-rendering: optimizeLegibility;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+}
+
+#caption {
+  color: var(--x-swatch-gray-600);
+}

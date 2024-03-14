@@ -1,0 +1,56 @@
+body {
+  margin: 0;
+  color: var(--x-default-text-color);
+  font-family: var(--x-default-font-family);
+  font-size: var(--x-default-font-size);
+  font-weight: var(--x-default-font-weight);
+  line-height: var(--x-default-line-height);
+  letter-spacing: var(--x-default-letter-spacing);
+  text-rendering: optimizeLegibility;
+}
+
+/* Style x-switch directly. */
+#switch {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  justify-content: center;
+}
+
+/* Style based on the existence of a tag. */
+#switch:not([tag]) {
+  background-color: lightgray;
+}
+
+/* Style based on the current tag. */
+#switch[tag="switch-one"] {
+  background-color: yellow;
+}
+#switch[tag="switch-two"] {
+  background-color: cyan;
+}
+#switch[tag="switch-three"] {
+  background-color: orange;
+}
+
+/* Style children directly as they're in the light DOM. */
+switch-one,
+switch-two,
+switch-three {
+  display: block;
+  margin-top: 80px;
+  font-weight: 600;
+}
+
+/* Nothing to do with x-switch — just some demo functionality and text. */
+#controls {
+  position: fixed;
+  top: 4px;
+  left: 4px;
+}
+#explainer {
+  position: fixed;
+  bottom: 4px;
+  left: 4px;
+  max-width: 90ch;
+}
