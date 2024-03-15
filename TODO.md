@@ -1,18 +1,16 @@
 # Things to TODO
 
 - Make `npm test` run all our tests.
-- Remove the need to depend on “x-element” from our test suite.
-- CONSIDER removing “x-element” dependency from this repo.
-- ^^ Could we instead have _yet another_ repository that’s an example app?
+- Consider just using `innerHTML` for all the demos in here for simplicity.
+- Should we have _yet another_ repository that’s an example app?
   That’s where we could have `x-todo-mvc` or some such. Then, we could have a
   hyper-simple.
 - TODO: Should we add back the “validity” check from x-switch? It would be simple
   enough to just wrap the `document.createElement()` call in a try-catch and
   slap an attribute on for our error state. One benefit to the error is that it
   does _fail very loudly_ at the moment.
-- Get demo to install deps on start.
-- Add demo for x-router.
-- Add demo for x-model.
+- Revisit file naming conventions in demos and class naming and event naming.
+  Probably don’t really need any of the prefixing.
 - Do we need to have an x-app file? It may be useful for setting things like
   the “font-family” defaults etc. Also, there is a FOUC on demo pages that use
   a _link_ versus static imports — should fix that.
