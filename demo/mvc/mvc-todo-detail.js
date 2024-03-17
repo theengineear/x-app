@@ -1,3 +1,4 @@
+import '../../x-style.js';
 import styleSheet from './mvc-todo-detail.css.js';
 
 const template = document.createElement('template');

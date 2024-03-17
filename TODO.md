@@ -1,6 +1,7 @@
 # Things to TODO
 
-- Make `npm test` run all our tests.
+- Build TypeScript stuff. Can we test that this has been done as well?
+- Should XController be instance based? Versus a singleton?
 - Consider just using `innerHTML` for all the demos in here for simplicity.
 - Should we have _yet another_ repository that’s an example app?
   That’s where we could have `x-todo-mvc` or some such. Then, we could have a

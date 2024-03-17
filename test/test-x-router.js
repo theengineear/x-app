@@ -1,4 +1,4 @@
-import XRouter from '../x-router.js';
+import { XRouter } from '../x-router.js';
 import { assert, it } from '@netflix/x-test/x-test.js';
 
 // Router is a singleton whose values may not be redefined. Therefore we set it

@@ -1,5 +1,5 @@
-import XController from '../../x-controller.js';
-import XModel, { Deep } from '../../x-model.js';
+import { XController } from '../../x-controller.js';
+import { XModel, Deep } from '../../x-model.js';
 
 class View extends HTMLElement {
   #model = null;

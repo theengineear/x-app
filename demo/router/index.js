@@ -1,4 +1,4 @@
-import XRouter from '../../x-router.js';
+import { XRouter } from '../../x-router.js';
 
 const file = import.meta.url;
 const pwd = file.slice(0, file.lastIndexOf('/'));

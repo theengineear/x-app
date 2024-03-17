@@ -13,7 +13,7 @@ running `git checkout main && git pull origin main`.
 
 ## Publishing with Manual Prepublish
 
-1. Edit `package.json`, `package-lock.json`, and `deno.json` files to
+1. Edit `package.json`, `package-lock.json`, and `jsr.json` files to
    set the new version. Don’t forget that `package-lock.json` should be edited
    in multiple places to account for the self-package’s version (i.e., `""`).
    For example, set the `"version"` key to a value of `"1.0.0-rc.57"`.

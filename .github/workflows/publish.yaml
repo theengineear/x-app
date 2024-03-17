@@ -10,8 +10,6 @@ jobs:
     needs: test
     uses: ./.github/workflows/publish-to-npm.yaml
     secrets: inherit
-  # TODO: Need to figure out a permissions issue here.
-  # publish-to-jsr:
-  #   needs: test
-  #   uses: ./.github/workflows/publish-to-jsr.yaml
-  #   secrets: inherit
+  publish-to-jsr:
+    needs: test
+    uses: ./.github/workflows/publish-to-jsr.yaml

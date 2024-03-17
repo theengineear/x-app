@@ -1,16 +1,24 @@
 /**
- * TODO: Add short doc string.
+ * Helper to switch between separate HTML tag names and bind properties.
  */
-export default class XSwitch extends HTMLElement {
+export class XSwitch extends HTMLElement {
+  /** @type {boolean} */
   #queued = false;
+
+  /** @type {boolean} */
   #initialized = false;
+
+  /** @type {undefined|string} */
   #tag = undefined;
+
+  /** @type {undefined|object} */
   #properties = undefined;
 
-  static get observedAttributes() {
-    return ['tag'];
-  }
-
+  /**
+   * Set the HTML element tag that should be stamped into the DOM.
+   * 
+   * @param {any} value
+   */
   set tag(value) {
     this.#tag = value;
     if (this.#tag === null || this.#tag === undefined) {
@@ -21,19 +29,39 @@ export default class XSwitch extends HTMLElement {
     this.#queue();
   }
 
+  /**
+   * Get the turn HTML element tag being rendered (if any).
+   * 
+   * @returns {any}
+   */
   get tag() {
     return this.#tag;
   }
 
+  /**
+   * Set the properties to bind to the element managed by this switch wrapper.
+   * 
+   * @param {any} value
+   */
   set properties(value) {
     this.#properties = value;
     this.#queue();
   }
 
+  /**
+   * Set the properties bound to the element managed by this switch wrapper.
+   * 
+   * @returns {any}
+   */
   get properties() {
     return this.#properties;
   }
 
+  /**
+   * Trigger a render to update the DOM
+   * 
+   * @returns {void}
+   */
   render() {
     const { tag, properties, firstElementChild } = this;
     if (tag) {
@@ -50,6 +78,10 @@ export default class XSwitch extends HTMLElement {
     } else {
       firstElementChild?.remove();
     }
+  }
+
+  static get observedAttributes() {
+    return ['tag'];
   }
 
   connectedCallback() {
