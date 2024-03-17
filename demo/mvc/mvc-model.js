@@ -1,6 +1,6 @@
 // TODO: Make everything async / scalable for child getters.
 
-import XModel from '../../x-model.js';
+import { XModel } from '../../x-model.js';
 import MvcTodoModel from './mvc-todo-model.js';
 
 export default class MvcModel extends XModel {

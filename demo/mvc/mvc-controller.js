@@ -1,7 +1,7 @@
 // TODO: Make everything async / scalable for child getters.
 
-import XController from '../../x-controller.js';
-import XRouter from '../../x-router.js';
+import { XController } from '../../x-controller.js';
+import { XRouter } from '../../x-router.js';
 
 export default class MvcController extends XController {
   static initializeRoutes(model) {

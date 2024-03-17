@@ -1,5 +1,0 @@
-{
-  "name": "@import/x-app",
-  "version": "1.0.0-rc.2",
-  "exports": "./index.js"
-}

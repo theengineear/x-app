@@ -2,6 +2,8 @@ import { test, coverage } from '@netflix/x-test/x-test.js';
 
 // We import this here so we can see code coverage.
 import '../x-model.js';
+import '../x-switch.js';
+import '../x-router.js';
 
 // Set a high bar for code coverage!
 // TODO: Get these all to 100.

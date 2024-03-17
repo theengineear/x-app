@@ -1,5 +1,5 @@
 import { assert, describe, it } from '@netflix/x-test/x-test.js';
-import XModel, { Deep, Store } from '../x-model.js';
+import { XModel, Deep, Store } from '../x-model.js';
 
 describe('deep', () => {
   it('pathToKeys handles ""', () => {

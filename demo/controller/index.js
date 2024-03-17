@@ -1,5 +1,5 @@
-import XModel from '../../x-model.js';
-import XController from '../../x-controller.js';
+import { XModel } from '../../x-model.js';
+import { XController } from '../../x-controller.js';
 
 // The core part of this demo is to show how we configure a basic controller.
 class Controller extends XController {

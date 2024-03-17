@@ -36,7 +36,6 @@ const common = {
     'no-shadow': 'warn',
     'no-undef-init': 'error',
     'no-undef': 'error',
-    'no-unused-expressions': 'warn',
     'no-unused-vars': 'warn',
     'no-var': 'error',
     'prefer-arrow-callback': ['error', { allowNamedFunctions: true }],

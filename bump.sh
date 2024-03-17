@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Wrapper around “npm version” which appends additional logic to also update the
-#  “deno.json” file which controls how we publish to JSR.
+#  “jsr.json” file which controls how we publish to JSR.
 
 # Exit upon any failure. I.e., make script strictly sequential.
 set -e
@@ -25,20 +25,20 @@ version="${prefixed_version:1}"
 
 # Get pointers to files we need to manually update.
 root_directory="$(dirname "$(realpath "${0}")")"
-deno_json_file="${root_directory}/deno.json"
+jsr_json_file="${root_directory}/jsr.json"
 package_json_file="${root_directory}/package.json"
 package_lock_json_file="${root_directory}/package-lock.json"
 
-# Bump version in deno.json.
-deno_json_find="\"version\": \"[^\"]*\""
-deno_json_repl="\"version\": \"${version}\""
-next_deno_json_file=$(sed "s/${deno_json_find}/${deno_json_repl}/g" "${deno_json_file}")
-echo "updating \"${deno_json_file}\""
-echo "${next_deno_json_file}" > "${deno_json_file}"
+# Bump version in jsr.json.
+jsr_json_find="\"version\": \"[^\"]*\""
+jsr_json_repl="\"version\": \"${version}\""
+next_jsr_json_file=$(sed "s/${jsr_json_find}/${jsr_json_repl}/g" "${jsr_json_file}")
+echo "updating \"${jsr_json_file}\""
+echo "${next_jsr_json_file}" > "${jsr_json_file}"
 
 # Commit all our changes.
 git add "${package_json_file}"
 git add "${package_lock_json_file}"
-git add "${deno_json_file}"
+git add "${jsr_json_file}"
 git commit --message="${version}"
 git tag --annotate "v${version}" --message="${version}"

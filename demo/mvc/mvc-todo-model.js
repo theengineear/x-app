@@ -1,6 +1,6 @@
 // TODO: Support “slugs” for nicer urls.
 
-import XModel from '../../x-model.js';
+import { XModel } from '../../x-model.js';
 
 export default class MvcTodoModel extends XModel {
   async load() {

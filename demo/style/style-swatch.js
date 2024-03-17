@@ -1,3 +1,4 @@
+import '../../x-style.js';
 import styleSheet from './style-swatch.css.js';
 
 const template = document.createElement('template');

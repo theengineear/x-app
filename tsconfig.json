@@ -1,0 +1,19 @@
+{
+  "include": [
+    "./x-controller.js",
+    "./x-model.js",
+    "./x-router.js",
+    "./x-style.js",
+    "./x-switch.js",
+    "./*.d.ts",
+    "./*.d.ts.map"
+  ],
+  "compilerOptions": {
+    "target": "ES6",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "module": "nodenext", // Approximates browser target.
+  }
+}
