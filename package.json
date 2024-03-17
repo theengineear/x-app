@@ -7,10 +7,15 @@
   "type": "module",
   "exports": {
     "./x-controller.js": "./x-controller.js",
+    "./x-controller.d.ts": "./x-controller.d.ts",
     "./x-model.js": "./x-model.js",
+    "./x-model.d.ts": "./x-model.d.ts",
     "./x-router.js": "./x-router.js",
+    "./x-router.d.ts": "./x-router.d.ts",
     "./x-style.js": "./x-style.js",
-    "./x-switch.js": "./x-switch.js"
+    "./x-style.d.ts": "./x-style.d.ts",
+    "./x-switch.js": "./x-switch.js",
+    "./x-switch.d.ts": "./x-switch.d.ts"
   },
   "publishConfig": {
     "access": "public",
