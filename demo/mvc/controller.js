@@ -3,13 +3,13 @@
 import { XController } from '../../x-controller.js';
 import { XRouter } from '../../x-router.js';
 
-export default class MvcController extends XController {
+export default class Controller extends XController {
   static initializeRoutes(model) {
     // Set up wildcard route handlers.
     XRouter.set('*', url => {
       if (url.pathname.match(/[^/]\/$/)) {
         // No match and a single, trailing slash. Remove it and try again.
-        const next = new URL(url);
+        const next = new URL(url.href);
         next.pathname = location.pathname.slice(0, -1);
         history.replaceState({}, null, next.href);
         XRouter.read();

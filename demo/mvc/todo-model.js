@@ -2,7 +2,7 @@
 
 import { XModel } from '../../x-model.js';
 
-export default class MvcTodoModel extends XModel {
+export default class TodoModel extends XModel {
   async load() {
     const data = JSON.parse(localStorage.getItem('mvc-todo-model') ?? '{}');
     await Promise.resolve();
@@ -15,22 +15,24 @@ export default class MvcTodoModel extends XModel {
   }
 
   async createTodo(name) {
-    const todoId = MvcTodoModel.#uuid();
+    const todoId = TodoModel.#uuid();
     await this.load();
-    const todos = this.get('data.todos') ?? [];
-    this.set(`data.todos`, todos.toSpliced(0, 0, { todoId, name }));
+    const todosPath = ['data', 'todos'];
+    const todos = this.get(todosPath) ?? [];
+    this.set(todosPath, todos.toSpliced(0, 0, { todoId, name }));
     await this.sync();
     return todoId;
   }
 
   async createTask(todoId, description) {
-    const taskId = MvcTodoModel.#uuid();
+    const taskId = TodoModel.#uuid();
     await this.load();
-    const todos = this.get('data.todos');
+    const todosPath = ['data', 'todos'];
+    const todos = this.get(todosPath);
     const todo = todos.find(candidate => candidate.todoId === todoId);
     const tasks = todo.tasks ?? [];
     const index = todos.indexOf(todo);
-    this.set(`data.todos`, todos.with(index, { ...todo, tasks: tasks.toSpliced(0, 0, { taskId, description }) }));
+    this.set(todosPath, todos.with(index, { ...todo, tasks: tasks.toSpliced(0, 0, { taskId, description }) }));
     await this.sync();
   }
 
@@ -42,5 +44,3 @@ export default class MvcTodoModel extends XModel {
     );
   }
 }
-
-MvcTodoModel.register();

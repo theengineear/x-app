@@ -1,12 +1,12 @@
 // TODO: Make everything async / scalable for child getters.
 
 import { XModel } from '../../x-model.js';
-import MvcTodoModel from './mvc-todo-model.js';
+import TodoModel from './todo-model.js';
 
-export default class MvcModel extends XModel {
+export default class Model extends XModel {
   get todo() {
     if (!this.hasChild('todo')) {
-      this.setChild('todo', new MvcTodoModel());
+      this.attachChild('todo', new TodoModel());
     }
     return this.getChild('todo');
   }
@@ -36,5 +36,3 @@ export default class MvcModel extends XModel {
     await this.todo.createTask(todoId, description);
   }
 }
-
-MvcModel.register();

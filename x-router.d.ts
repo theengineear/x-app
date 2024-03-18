@@ -12,7 +12,7 @@ export class XRouter {
      * @typedef { pattern: string, callback: XRouter~routeCallback, regex: RegExp, tokens: string[] } XRouter~route
      */
     /** @type {Map<string, XRouter~route>} */
-    static "__#4@#patterns": Map<string, (url: URL, params: Map<any, any>) => any>;
+    static "__#2@#patterns": Map<string, (url: URL, params: Map<any, any>) => any>;
     /**
      * @callback XRouter~routeCallback
      * @param {URL} url
@@ -21,7 +21,7 @@ export class XRouter {
      * @returns {any}
      */
     /** @type {XRouter~routeCallback} */
-    static "__#4@#wildcard": (url: URL, params: Map<any, any>) => any;
+    static "__#2@#wildcard": (url: URL, params: Map<any, any>) => any;
     /**
      * Set a pattern and an associated callback.
      *
