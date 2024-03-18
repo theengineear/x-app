@@ -1,1 +1,1 @@
-import './mvc-root.js';
+import './root.js';

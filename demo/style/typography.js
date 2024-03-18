@@ -1,5 +1,5 @@
 import '../../x-style.js';
-import styleSheet from './style-typography.css' with { type: 'css' };
+import styleSheet from './typography.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\
@@ -9,7 +9,7 @@ template.innerHTML = `\
 <div>Etiam sed mauris rhoncus, pellentesque risus vehicula, scelerisque tellus. Praesent in diam id urna hendrerit iaculis. Maecenas sed mattis dui, sit amet fermentum arcu. Curabitur dapibus finibus ipsum, et scelerisque mauris. Proin commodo mattis, vitae ipsum.</div>
 `;
 
-export default class StyleTypography extends HTMLElement {
+export default class Typography extends HTMLElement {
   #queued = false;
   #label = null;
   #spec = null;
@@ -68,4 +68,4 @@ export default class StyleTypography extends HTMLElement {
   }
 }
 
-customElements.define('style-typography', StyleTypography);
+customElements.define('style-typography', Typography);

@@ -1,5 +1,5 @@
 import '../../x-style.js';
-import styleSheet from './style-swatch.css' with { type: 'css' };
+import styleSheet from './swatch.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\
@@ -8,7 +8,7 @@ template.innerHTML = `\
 </div>
 `;
 
-export class StyleSwatch extends HTMLElement {
+export class Swatch extends HTMLElement {
   #queued = false;
   #label = null;
   #spec = null;
@@ -104,4 +104,4 @@ export class StyleSwatch extends HTMLElement {
   }
 }
 
-customElements.define('style-swatch', StyleSwatch);
+customElements.define('style-swatch', Swatch);

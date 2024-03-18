@@ -1,20 +1,42 @@
 import { assert, describe, it } from '@netflix/x-test/x-test.js';
-import { XModel, Deep, Store } from '../x-model.js';
+import { XModel } from '../x-model.js';
+
+// Overwrite console warn for testing so we don’t get spammed with our own
+//  deprecation warnings.
+const seen = new Set();
+const warn = console.warn; // eslint-disable-line no-console
+const localMessages = [
+  'Initializing value on construction is deprecated. Set value after construction.',
+  'Use "delete" or "deleteValue" (versus "remove").',
+  'Use "hasValue" to check for top-level value existence.',
+  'String-type path is deprecated. Use an array.',
+  'Use "setValue" or ".value" to set top-level value.',
+  'The "setChild" method is deprecated. Use "attachChild".',
+  'The "register" method is no longer needed. You may safely delete this call.',
+];
+console.warn = (...args) => { // eslint-disable-line no-console
+  if (!localMessages.includes(args[0]?.message)) {
+    warn(...args);
+  } else {
+    seen.add(args[0].message);
+  }
+};
 
 describe('deep', () => {
-  it('pathToKeys handles ""', () => {
+  const Deep = null; // TODO: We’re deleting this.
+  it.skip('pathToKeys handles ""', () => {
     const actual = Deep.pathToKeys('');
     assert(actual.length === 1);
     assert(actual[0] === '');
   });
 
-  it('pathToKeys handles "a"', () => {
+  it.skip('pathToKeys handles "a"', () => {
     const actual = Deep.pathToKeys('a');
     assert(actual.length === 1);
     assert(actual[0] === 'a');
   });
 
-  it('pathToKeys handles "one.two.oo.3.-1"', () => {
+  it.skip('pathToKeys handles "one.two.oo.3.-1"', () => {
     const actual = Deep.pathToKeys('one.two.oo.3.-1');
     assert(actual.length === 5);
     assert(actual[0] === 'one');
@@ -24,14 +46,14 @@ describe('deep', () => {
     assert(actual[4] === '-1');
   });
 
-  it('clone returns scalars as-is', () => {
+  it.skip('clone returns scalars as-is', () => {
     assert(Deep.clone() === undefined);
     assert(Deep.clone(null) === null);
     assert(Deep.clone('a') === 'a');
     assert(Deep.clone(5) === 5);
   });
 
-  it('clone changes top and nested references', () => {
+  it.skip('clone changes top and nested references', () => {
     const obj = { a: { b: { c: {} } } };
     Object.freeze(obj);
     Object.freeze(obj.a);
@@ -45,7 +67,7 @@ describe('deep', () => {
     assert(JSON.stringify(clone) === JSON.stringify(obj));
   });
 
-  it('clone works on arrays', () => {
+  it.skip('clone works on arrays', () => {
     const obj = [1, 2, 3];
     Object.freeze(obj);
     const clone = Deep.clone(obj);
@@ -53,14 +75,14 @@ describe('deep', () => {
     assert(JSON.stringify(clone) === JSON.stringify(obj));
   });
 
-  it('shallow clone returns scalars as-is', () => {
+  it.skip('shallow clone returns scalars as-is', () => {
     assert(Deep.clone(undefined, true) === undefined);
     assert(Deep.clone(null, true) === null);
     assert(Deep.clone('a', true) === 'a');
     assert(Deep.clone(5, true) === 5);
   });
 
-  it('shallow clone changes only top reference', () => {
+  it.skip('shallow clone changes only top reference', () => {
     const obj = { a: { b: { c: {} } } };
     Object.freeze(obj);
     Object.freeze(obj.a);
@@ -74,7 +96,7 @@ describe('deep', () => {
     assert(JSON.stringify(clone) === JSON.stringify(obj));
   });
 
-  it('shallow clone works on arrays', () => {
+  it.skip('shallow clone works on arrays', () => {
     const obj = [1, 2, 3];
     Object.freeze(obj);
     const clone = Deep.clone(obj, true);
@@ -82,7 +104,7 @@ describe('deep', () => {
     assert(JSON.stringify(clone) === JSON.stringify(obj));
   });
 
-  it('shallow clone does not convert empty to undefined in arrays', () => {
+  it.skip('shallow clone does not convert empty to undefined in arrays', () => {
     const array = [];
     array[1] = null;
     const clone = Deep.clone(array, true);
@@ -90,28 +112,28 @@ describe('deep', () => {
     assert(Reflect.get(clone, 1) === null);
   });
 
-  it('freeze should always return undefined', () => {
+  it.skip('freeze should always return undefined', () => {
     assert(Deep.freeze({}) === undefined);
     assert(Deep.freeze(1) === undefined);
     assert(Deep.freeze(null) === undefined);
     assert(Deep.freeze(undefined) === undefined);
   });
 
-  it('freeze should recursively freeze', () => {
+  it.skip('freeze should recursively freeze', () => {
     const value = { a: 'a', b: { c: 'c' } };
     Deep.freeze(value);
     assert(Object.isFrozen(value) === true);
     assert(Object.isFrozen(value.b) === true);
   });
 
-  it('equal should work on primitives', () => {
+  it.skip('equal should work on primitives', () => {
     assert(Deep.equal('a', 'a') === true);
     assert(Deep.equal(null, null) === true);
     assert(Deep.equal('a', 'b') === false);
     assert(Deep.equal(null, undefined) === false);
   });
 
-  it('equal should work on objects', () => {
+  it.skip('equal should work on objects', () => {
     assert(Deep.equal({}, {}) === true);
     assert(Deep.equal({ a: 'a' }, {}) === false);
     assert(Deep.equal({ a: 'a' }, { a: 'a' }) === true);
@@ -119,7 +141,7 @@ describe('deep', () => {
     assert(Deep.equal({ a: { b: undefined } }, { a: {} }) === false);
   });
 
-  it('has should throw for invalid paths', () => {
+  it.skip('has should throw for invalid paths', () => {
     let threwForUndefined = false;
     let threwForNull = false;
     try {
@@ -136,7 +158,7 @@ describe('deep', () => {
     assert(threwForNull);
   });
 
-  it('has should handle valid paths', () => {
+  it.skip('has should handle valid paths', () => {
     assert(Deep.has(undefined, 'a.b') === false);
     assert(Deep.has(null, 'a.b') === false);
     assert(Deep.has('a', 'a.b') === false);
@@ -150,12 +172,12 @@ describe('deep', () => {
     assert(Deep.has({}, 'a.b') === false);
   });
 
-  it('has should work for deeply nested paths', () => {
-    const actual = Deep.has({ a: { b: [{ c: 'C' }] } }, 'a.b.0.c');
+  it.skip('has should work for deeply nested paths', () => {
+    const actual = XModel.has({ a: { b: [{ c: 'C' }] } }, 'a.b.0.c');
     assert(actual === true);
   });
 
-  it('get should throw for invalid paths', () => {
+  it.skip('get should throw for invalid paths', () => {
     let threwForUndefined = false;
     let threwForNull = false;
     try {
@@ -172,7 +194,7 @@ describe('deep', () => {
     assert(threwForNull);
   });
 
-  it('get should handle valid paths', () => {
+  it.skip('get should handle valid paths', () => {
     assert(Deep.get(undefined, 'a.b') === undefined);
     assert(Deep.get(null, 'a.b') === undefined);
     assert(Deep.get('a', 'a.b') === undefined);
@@ -186,12 +208,12 @@ describe('deep', () => {
     assert(Deep.get({}, 'a.b') === undefined);
   });
 
-  it('get should work for deeply nested paths', () => {
+  it.skip('get should work for deeply nested paths', () => {
     const actual = Deep.get({ a: { b: [{ c: 'C' }] } }, 'a.b.0.c');
     assert(actual === 'C');
   });
 
-  it('set should throw for invalid paths', () => {
+  it.skip('set should throw for invalid paths', () => {
     let threwForUndefined = false;
     let threwForNull = false;
     try {
@@ -208,7 +230,7 @@ describe('deep', () => {
     assert(threwForNull);
   });
 
-  it('should handle valid paths', () => {
+  it.skip('should handle valid paths', () => {
     const string = JSON.stringify({ a: { b: 'B' } });
     assert(JSON.stringify(Deep.set(undefined, 'a.b', 'B')) === string);
     assert(JSON.stringify(Deep.set(null, 'a.b', 'B')) === string);
@@ -223,13 +245,13 @@ describe('deep', () => {
     assert(JSON.stringify(Deep.set({}, 'a.b', 'B')) === string);
   });
 
-  it('set should work for deeply nested paths', () => {
+  it.skip('set should work for deeply nested paths', () => {
     const actual = Deep.set({ a: { b: [{ c: 'C' }] } }, 'a.b.0.c', 'see');
     const string = JSON.stringify({ a: { b: [{ c: 'see' }] } });
     assert(JSON.stringify(actual) === string);
   });
 
-  it('set should noop if value is exactly the same', () => {
+  it.skip('set should noop if value is exactly the same', () => {
     const obj = { a: { b: {} } };
     Object.freeze(obj);
     Object.freeze(obj.a);
@@ -237,7 +259,7 @@ describe('deep', () => {
     assert(Deep.set(obj, 'a.b', obj.a.b) === obj);
   });
 
-  it('delete should throw for invalid paths', () => {
+  it.skip('delete should throw for invalid paths', () => {
     let threwForUndefined = false;
     let threwForNull = false;
     try {
@@ -254,7 +276,7 @@ describe('deep', () => {
     assert(threwForNull);
   });
 
-  it('delete should handle valid paths', () => {
+  it.skip('delete should handle valid paths', () => {
     assert(Deep.delete(undefined, 'a.b', 'B') === undefined);
     assert(Deep.delete(null, 'a.b', 'B') === null);
     assert(Deep.delete('a', 'a.b', 'B') === 'a');
@@ -262,20 +284,22 @@ describe('deep', () => {
     assert(Deep.delete(5, 'a.b', 'B') === 5);
   });
 
-  it('delete should work for deeply nested paths', () => {
+  it.skip('delete should work for deeply nested paths', () => {
     const actual = Deep.delete({ a: { b: [{ c: 'C' }] } }, 'a.b.0.c', 'see');
     const string = JSON.stringify({ a: { b: [{}] } });
     assert(JSON.stringify(actual) === string);
   });
 
-  it('delete should noop if value does not exist', () => {
+  it.skip('delete should noop if value does not exist', () => {
     const obj = {};
     assert(Deep.delete(obj, 'a.b') === obj);
   });
 });
 
 describe('store', () => {
-  it('value getter', () => {
+  const Deep = null; // TODO: We’re deleting this.
+  const Store = null; // TODO: We’re deleting this.
+  it.skip('value getter', () => {
     const store = new Store();
     assert(store.value === undefined);
     assert(store.hasValue() === false);
@@ -287,7 +311,7 @@ describe('store', () => {
     assert(store.hasValue() === false);
   });
 
-  it('has/get/set/remove (no-path argument)', () => {
+  it.skip('has/get/set/remove (no-path argument)', () => {
     const store = new Store();
     assert(store.has() === false);
     assert(store.get() === undefined);
@@ -299,7 +323,7 @@ describe('store', () => {
     assert(store.get() === undefined);
   });
 
-  it('has/get/set/remove (path argument)', () => {
+  it.skip('has/get/set/remove (path argument)', () => {
     const store = new Store();
     const path = 'foo.bar';
     assert(store.has(path) === false);
@@ -313,7 +337,7 @@ describe('store', () => {
     assert(Deep.equal(store.get(), { foo: {} }));
   });
 
-  it('subscribe callback is called on subscribe', async () => {
+  it.skip('subscribe callback is called on subscribe', async () => {
     // This is important. Change sets in stores should be considered atomic.
     // If we allow a callback in the middle of a synchronous set of changes,
     // we might get a callback with a partial change.
@@ -353,7 +377,7 @@ describe('store', () => {
     assert(Deep.equal(newValueRef, { moo: 'mar' }));
   });
 
-  it('subscribe callback is called on top-level changes', async () => {
+  it.skip('subscribe callback is called on top-level changes', async () => {
     const store = new Store();
 
     // We're not testing initialization, so await possible invalidation.
@@ -390,7 +414,7 @@ describe('store', () => {
     assert(newValueRef === store.value);
   });
 
-  it('subscribe callback is called on nested changes', async () => {
+  it.skip('subscribe callback is called on nested changes', async () => {
     const store = new Store();
 
     // We're not testing initialization, so await possible invalidation.
@@ -429,6 +453,24 @@ describe('store', () => {
 });
 
 describe('x-model', () => {
+  const isObject = object => object instanceof Object;
+  const deepEqual = (a, b) => {
+    if (a === b) {
+      return true;
+    }
+    return (
+      isObject(a) &&
+      isObject(b) &&
+      // Note, we ignore non-enumerable properties (Symbols) here.
+      Object.keys(a).length === Object.keys(b).length &&
+      Object.keys(a).every(key => deepEqual(a[key], b[key]))
+    );
+  };
+  class Deep {
+    static equal(a, b) {
+      return deepEqual(a, b);
+    }
+  }
   it('should be able to has/get/set/remove its value', () => {
     const model = new XModel();
     assert(model.has() === false);
@@ -719,7 +761,7 @@ describe('x-model', () => {
     assert(calledThird === false);
   });
 
-  it('trying to register the same exact class twice should fail', () => {
+  it.skip('trying to register the same exact class twice should fail', () => {
     class MyClass extends XModel {}
     MyClass.register();
 
@@ -761,4 +803,10 @@ describe('x-model', () => {
     }
     assert(passed, 'Duplicate name was not corrected and registered.');
   });
+});
+
+it('confirm that deprecation warnings are still necessary', () => {
+  for (const message of localMessages) {
+    assert(seen.has(message), `Unused deprecation warning: ${message}`);
+  }
 });

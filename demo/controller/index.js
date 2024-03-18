@@ -49,8 +49,9 @@ class View extends HTMLElement {
 }
 customElements.define('controller-view', View);
 
-const model = new XModel({ value: { count: 0 } });
+const model = new XModel();
+model.set('count', 0);
 const view = new View();
 const root = document.getElementById('root');
 new Controller(model, view);
-root.append(model, view);
+root.append(view);

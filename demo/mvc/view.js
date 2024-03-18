@@ -2,9 +2,9 @@
 
 import '../../x-style.js';
 import '../../x-switch.js';
-import './mvc-todo-detail.js';
-import './mvc-todo-list.js';
-import styleSheet from './mvc-view.css' with { type: 'css' };
+import './todo-detail.js';
+import './todo-list.js';
+import styleSheet from './view.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\
@@ -18,7 +18,7 @@ template.innerHTML = `\
 </div>
 `;
 
-export default class MvcView extends HTMLElement {
+export default class View extends HTMLElement {
   #model = null;
   #queued = false;
 
@@ -80,4 +80,4 @@ export default class MvcView extends HTMLElement {
   }
 }
 
-customElements.define('mvc-view', MvcView);
+customElements.define('mvc-view', View);

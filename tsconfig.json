@@ -1,8 +1,7 @@
 {
   "include": [
     "./x-controller.js",
-    // TODO: Will get this back in as part of a separate effort.
-    // "./x-model.js",
+    "./x-model.js",
     "./x-router.js",
     "./x-style.js",
     "./x-switch.js",

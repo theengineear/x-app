@@ -23,3 +23,8 @@
   a “favicon.ico” file and a “service-worker.js” file? Seems that favicon is
   the only issue. Should we pick / make a real one?
 - Bump up coverage requirements to 100% in our tests.
+- Add a way to visualize model trees (either in console, or dom) such that
+  traversing, introspecting to debug is easy.
+- Document changes to XModel. There aren’t many, but there will be a small
+  migration.
+- Should XModel support setting children into arrays? Right now, only a map is really supported.
