@@ -1,4 +1,5 @@
-import styleSheet from './x-style.css.js';
+// @ts-ignore — TypeScript doesn’t understand import attributes yet.
+import styleSheet from './x-style.css' with { type: 'css' };
 
 /**
  * Simple wrapper class to provide exportable entity for reimport / export.

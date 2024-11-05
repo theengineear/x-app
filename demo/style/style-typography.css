@@ -1,8 +1,3 @@
-// TODO: Replace with .css file when “import attributes” are supported.
-const css = strings => strings.join(''); // Cheesy way to get IDE to highlight.
-
-const styleSheet = new CSSStyleSheet();
-styleSheet.replaceSync(css`\
 :host {
   display: flex;
   padding: var(--x-margin-small) 0;
@@ -21,6 +16,3 @@ styleSheet.replaceSync(css`\
 #label {
   text-transform: uppercase;
 }
-`);
-
-export default styleSheet;

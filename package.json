@@ -25,6 +25,7 @@
     "build": "rm *.d.ts && rm *.d.ts.map && npx tsc --build --force",
     "lint": "eslint --max-warnings=0 .",
     "test": "node test.js | tap-parser -l",
+    "type": "tsc",
     "bump": "./bump.sh"
   },
   "files": [
@@ -37,11 +38,11 @@
     "./*.d.ts.map"
   ],
   "devDependencies": {
-    "@netflix/x-test": "^1.0.0",
-    "eslint": "^8.56.0",
-    "puppeteer": "^22.0.0",
-    "tap-parser": "^15.3.1",
-    "typescript": "^5.4.2"
+    "@netflix/x-test": "1.0.1",
+    "eslint": "9.14.0",
+    "puppeteer": "23.7.0",
+    "tap-parser": "18.0.0",
+    "typescript": "5.6.3"
   },
   "contributors": [
     {

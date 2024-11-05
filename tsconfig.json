@@ -1,19 +1,24 @@
 {
   "include": [
     "./x-controller.js",
-    "./x-model.js",
+    // TODO: Will get this back in as part of a separate effort.
+    // "./x-model.js",
     "./x-router.js",
     "./x-style.js",
     "./x-switch.js",
-    "./*.d.ts",
-    "./*.d.ts.map"
   ],
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ESNext",
     "allowJs": true,
+    "checkJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    // Even though the docs suggest that “declarationMap” is a way to go from
+    //  generated-js back to ts… it also seems to be the case that it will help
+    //  IDEs get to the right _js_ when using types. See
+    //  https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html
     "declarationMap": true,
-    "module": "nodenext", // Approximates browser target.
+    "noEmitOnError": true,
+    "module": "NodeNext" // Approximates browser target.
   }
 }

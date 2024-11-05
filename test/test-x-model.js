@@ -124,12 +124,12 @@ describe('deep', () => {
     let threwForNull = false;
     try {
       Deep.has({}, undefined);
-    } catch (err) {
+    } catch {
       threwForUndefined = true;
     }
     try {
       Deep.has({}, null);
-    } catch (err) {
+    } catch {
       threwForNull = true;
     }
     assert(threwForUndefined);
@@ -160,12 +160,12 @@ describe('deep', () => {
     let threwForNull = false;
     try {
       Deep.get({}, undefined);
-    } catch (err) {
+    } catch {
       threwForUndefined = true;
     }
     try {
       Deep.get({}, null);
-    } catch (err) {
+    } catch {
       threwForNull = true;
     }
     assert(threwForUndefined);
@@ -196,12 +196,12 @@ describe('deep', () => {
     let threwForNull = false;
     try {
       Deep.set({}, undefined);
-    } catch (err) {
+    } catch {
       threwForUndefined = true;
     }
     try {
       Deep.set({}, null);
-    } catch (err) {
+    } catch {
       threwForNull = true;
     }
     assert(threwForUndefined);
@@ -242,12 +242,12 @@ describe('deep', () => {
     let threwForNull = false;
     try {
       Deep.delete({}, undefined);
-    } catch (err) {
+    } catch {
       threwForUndefined = true;
     }
     try {
       Deep.delete({}, null);
-    } catch (err) {
+    } catch {
       threwForNull = true;
     }
     assert(threwForUndefined);
@@ -726,7 +726,7 @@ describe('x-model', () => {
     let passed = false;
     try {
       MyClass.register();
-    } catch (error) {
+    } catch {
       passed = true;
     }
     assert(passed, 'Class was unexpectedly allowed to register twice.');
@@ -739,7 +739,7 @@ describe('x-model', () => {
     try {
       Minified.register();
       passed = true;
-    } catch (error) {
+    } catch {
       // Ignore.
     }
     assert(passed, 'Invalid name was not corrected and registered.');
@@ -756,7 +756,7 @@ describe('x-model', () => {
     try {
       register();
       passed = true;
-    } catch (error) {
+    } catch {
       // Ignore.
     }
     assert(passed, 'Duplicate name was not corrected and registered.');

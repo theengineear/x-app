@@ -38,6 +38,7 @@ export class XController {
    * @param {HTMLElement} view
    */
   constructor(model, view) {
+    // @ts-ignore — TypeScript doesn’t understand “this.constructor”.
     this.constructor.initialize(model, view);
   }
 
@@ -66,6 +67,7 @@ export class XController {
    * @param {object} [newValue]
    */
   static onModelChange(view, oldValue, newValue) {
+    // @ts-ignore — Need to figure out how to hint that “.model” will exist.
     view.model = newValue;
   }
 
