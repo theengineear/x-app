@@ -6,46 +6,61 @@
  */
 export class XRouter {
     /**
-     * @typedef {regex: RegExp, tokens: string[]} XRouter~parseResult
+     * @typedef {object} ParseResult
+     * @property {RegExp} regex
+     * @property {string[]} tokens
      */
     /**
-     * @typedef { pattern: string, callback: XRouter~routeCallback, regex: RegExp, tokens: string[] } XRouter~route
-     */
-    /** @type {Map<string, XRouter~route>} */
-    static "__#4@#patterns": Map<string, (url: URL, params: Map<any, any>) => any>;
-    /**
-     * @callback XRouter~routeCallback
+     * @callback routeCallback
      * @param {URL} url
      * @param {Map} params
-     *
-     * @returns {any}
+     * @return {any}
      */
-    /** @type {XRouter~routeCallback} */
-    static "__#4@#wildcard": (url: URL, params: Map<any, any>) => any;
+    /**
+     * @typedef {object} Route
+     * @property {string} pattern
+     * @property {routeCallback} callback
+     * @property {RegExp} regex
+     * @property {string[]} tokens
+     */
+    /** @type {Map<string, Route>} */
+    static "__#3@#patterns": Map<string, {
+        pattern: string;
+        callback: (url: URL, params: Map<any, any>) => any;
+        regex: RegExp;
+        tokens: string[];
+    }>;
+    /** @type {routeCallback} */
+    static "__#3@#wildcard": (url: URL, params: Map<any, any>) => any;
     /**
      * Set a pattern and an associated callback.
      *
      * @param {string} pattern
-     * @param {XRouter~routeCallback} callback
+     * @param {routeCallback} callback
      */
-    static set(pattern: string, callback: any): void;
+    static set(pattern: string, callback: (url: URL, params: Map<any, any>) => any): void;
     /**
      * Find the best match. Match with fewest params is prioritized.
      *
      * @param {URL} url
-     * @returns {{route: unknown, params: Map<any, any>}}
+     * @returns {{route: Route, params: Map<string, any>}}
      */
     static match(url: URL): {
-        route: unknown;
-        params: Map<any, any>;
+        route: {
+            pattern: string;
+            callback: (url: URL, params: Map<any, any>) => any;
+            regex: RegExp;
+            tokens: string[];
+        };
+        params: Map<string, any>;
     };
     /**
      * Resolve object to url. For now, Router can only resolve click events.
      *
-     * @param {Event} event
+     * @param {KeyboardEvent} event
      * @returns {undefined|URL}
      */
-    static resolve(event: Event): undefined | URL;
+    static resolve(event: KeyboardEvent): undefined | URL;
     /**
      * Use the current location to update the route.
      *
@@ -57,8 +72,11 @@ export class XRouter {
      *
      * @param {string} pattern
      * @throws Throws for invalid input.
-     * @returns {XRouter~parseResult}
+     * @returns {ParseResult}
      */
-    static parse(pattern: string): (url: URL, params: Map<any, any>) => any;
+    static parse(pattern: string): {
+        regex: RegExp;
+        tokens: string[];
+    };
 }
 //# sourceMappingURL=x-router.d.ts.map

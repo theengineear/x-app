@@ -1,5 +1,5 @@
 import '../../x-style.js';
-import styleSheet from './mvc-todo-detail.css.js';
+import styleSheet from './mvc-todo-detail.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\

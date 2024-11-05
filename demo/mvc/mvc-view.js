@@ -4,7 +4,7 @@ import '../../x-style.js';
 import '../../x-switch.js';
 import './mvc-todo-detail.js';
 import './mvc-todo-list.js';
-import styleSheet from './mvc-view.css.js';
+import styleSheet from './mvc-view.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\

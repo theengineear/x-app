@@ -5,33 +5,39 @@
  * See https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API
  */
 export class XRouter {
+
   /**
-   * @typedef {regex: RegExp, tokens: string[]} XRouter~parseResult
+   * @typedef {object} ParseResult
+   * @property {RegExp} regex
+   * @property {string[]} tokens
    */
 
   /**
-   * @typedef { pattern: string, callback: XRouter~routeCallback, regex: RegExp, tokens: string[] } XRouter~route
-   */
-
-  /** @type {Map<string, XRouter~route>} */
-  static #patterns = new Map();
-
-  /**
-   * @callback XRouter~routeCallback
+   * @callback routeCallback
    * @param {URL} url
    * @param {Map} params
-   *
-   * @returns {any}
+   * @return {any}
    */
 
-  /** @type {XRouter~routeCallback} */
+  /**
+   * @typedef {object} Route
+   * @property {string} pattern
+   * @property {routeCallback} callback
+   * @property {RegExp} regex
+   * @property {string[]} tokens
+   */
+
+  /** @type {Map<string, Route>} */
+  static #patterns = new Map();
+
+  /** @type {routeCallback} */
   static #wildcard = (url, params) => {}; // eslint-disable-line no-unused-vars
 
   /**
    * Set a pattern and an associated callback.
    * 
    * @param {string} pattern
-   * @param {XRouter~routeCallback} callback
+   * @param {routeCallback} callback
    */
   static set(pattern, callback) {
     if (pattern === '*') {
@@ -46,7 +52,7 @@ export class XRouter {
    * Find the best match. Match with fewest params is prioritized.
    * 
    * @param {URL} url
-   * @returns {{route: unknown, params: Map<any, any>}}
+   * @returns {{route: Route, params: Map<string, any>}}
    */
   static match(url) {
     if (url.origin === window.location.origin) {
@@ -67,7 +73,7 @@ export class XRouter {
   /**
    * Resolve object to url. For now, Router can only resolve click events.
    * 
-   * @param {Event} event
+   * @param {KeyboardEvent} event
    * @returns {undefined|URL}
    */
   static resolve(event) {
@@ -76,9 +82,11 @@ export class XRouter {
       event.type === 'click' &&
       (!event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey)
     ) {
-      const link = event.composedPath().find(element => element.nodeName === 'A');
+      const link = event.composedPath().find(element => (
+        element instanceof HTMLAnchorElement
+      ));
       if (link && link.href && (!link.target || link.target === '_self')) {
-        const url = new URL(link);
+        const url = new URL(link.href);
         if (XRouter.match(url)) {
           return url;
         }
@@ -92,7 +100,7 @@ export class XRouter {
    * @returns {void}
    */
   static read() {
-    const url = new URL(window.location);
+    const url = new URL(location.href);
     const match = this.match(url);
     if (match) {
       match.route.callback(url, match.params);
@@ -106,7 +114,7 @@ export class XRouter {
    * 
    * @param {string} pattern
    * @throws Throws for invalid input.
-   * @returns {XRouter~parseResult}
+   * @returns {ParseResult}
    */
   static parse(pattern) {
     const paramRegex = /:[^\s^+/]+\+?/g;

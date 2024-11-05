@@ -61,5 +61,5 @@ export class XController {
      */
     constructor(model: XModel, view: HTMLElement);
 }
-export type XModel = import('./x-model.js').XModel;
+export type XModel = import("./x-model.js").XModel;
 //# sourceMappingURL=x-controller.d.ts.map

@@ -1,5 +1,5 @@
 import '../../x-style.js';
-import styleSheet from './style-swatch.css.js';
+import styleSheet from './style-swatch.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\
