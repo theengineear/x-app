@@ -22,7 +22,6 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "rm *.d.ts && rm *.d.ts.map && npx tsc --build --force",
     "lint": "eslint --max-warnings=0 .",
     "test": "node test.js | tap-parser -l",
     "type": "tsc",
@@ -30,12 +29,20 @@
   },
   "files": [
     "./x-controller.js",
+    "./x-controller.d.ts",
+    "./x-controller.d.ts.map",
     "./x-model.js",
+    "./x-model.d.ts",
+    "./x-model.d.ts.map",
     "./x-router.js",
+    "./x-router.d.ts",
+    "./x-router.d.ts.map",
     "./x-style.js",
+    "./x-style.d.ts",
+    "./x-style.d.ts.map",
     "./x-switch.js",
-    "./*.d.ts",
-    "./*.d.ts.map"
+    "./x-switch.d.ts",
+    "./x-switch.d.ts.map"
   ],
   "devDependencies": {
     "@netflix/x-test": "1.0.1",

@@ -1,5 +1,5 @@
 import { XController } from '../../x-controller.js';
-import { XModel, Deep } from '../../x-model.js';
+import { XModel } from '../../x-model.js';
 
 class View extends HTMLElement {
   #model = null;
@@ -108,31 +108,29 @@ customElements.define('model-view', View);
 
 class ShapesModel extends XModel {
   async add(type) {
-    const key = String(this.has() ? this.value.length : 0);
-    this.set(key, { type, loading: true });
+    const index = this.value?.length ?? 0;
+    this.set(index, { type, loading: true });
     await new Promise(res => setTimeout(res, 1000));
-    this.set(`${key}.text`, `This is a ${type}.`);
-    this.set(`${key}.loading`, false);
+    this.set([index, 'text'], `This is a ${type}.`);
+    this.set([index, 'loading'], false);
   }
   destroy(index) {
-    if (this.get(`${index}.loading`)) {
+    if (this.get([index, 'loading'])) {
       throw new Error('Cannot destroy shape before it is loaded.');
     } else {
-      const shallow = true;
-      const shapes = Deep.clone(this.get(), shallow);
-      shapes.splice(index, 1);
-      this.set(shapes);
+      this.value = this.value.toSpliced(index, 1);
     }
   }
 }
-ShapesModel.register();
 
 class Model extends XModel {
   constructor(input) {
     super(input);
     const child = new ShapesModel();
-    this.setChild('shapes', child);
-    Reflect.defineProperty(this, 'shapes', { value: child });
+    this.attachChild('shapes', child);
+  }
+  get shapes() {
+    return this.getChild('shapes');
   }
   addShape(type) {
     this.shapes.add(type);
@@ -141,8 +139,6 @@ class Model extends XModel {
     this.shapes.destroy(index);
   }
 }
-Model.register();
-
 
 class DemoController extends XController {
   static configureListeners(model, view) {

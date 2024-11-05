@@ -1,5 +1,5 @@
 import '../../x-style.js';
-import styleSheet from './mvc-todo-list.css' with { type: 'css' };
+import styleSheet from './todo-list.css' with { type: 'css' };
 
 const template = document.createElement('template');
 template.innerHTML = `\
@@ -10,7 +10,7 @@ template.innerHTML = `\
 </div>
 `;
 
-export default class MvcTodoList extends HTMLElement {
+export default class TodoList extends HTMLElement {
   #model = null;
   #queued = false;
 
@@ -76,4 +76,4 @@ export default class MvcTodoList extends HTMLElement {
   }
 }
 
-customElements.define('mvc-todo-list', MvcTodoList);
+customElements.define('mvc-todo-list', TodoList);

@@ -1,712 +1,770 @@
 /**
- * Provides helper functions for non-mutating, deep object manipulation.
+ * XModel — a simple state management tool.
+ * It provides the following:
+ *   1. Events.
+ *   2. Deep object management.
+ *   3. Delegated scope management.
+ * ```js
+ * import XModel from '@import/x-app/x-model.js';
+ * class MyModel extends XModel {
+ *   async load() {
+ *     // Models are responsible for data fetching.
+ *     const response = await new Promise.resolve({ data: 'hot off the press' });
+ *     this.set('data', response.data);
+ *   }
+ * }
+ * ```
  */
-export class Deep {
-  /** @type {Map<string, string[]>} */
-  static #pathToKeysMap = new Map();
+export class XModel {
+  static #models = new WeakMap();
+  static #events = new WeakMap();
+  static #paths = new Map();
+  static #stacks = new Set();
+  #state = {};
 
-  /** @type {symbol} */
-  static #DELETE_SENTINEL = Symbol('__delete__');
-
-  /**
-   * @param {any} object
-   * @returns {boolean}
-   */
   static #isObject(object) {
-    return object instanceof Object && object !== null;
+    return object instanceof Object;
   }
 
-  /**
-   * @param {any} object
-   * @param {any} key
-   * @returns {boolean}
-   */
   static #hasKey(object, key) {
-    return Deep.#isObject(object) ? Reflect.has(object, key) : false;
+    return XModel.#isObject(object) ? Reflect.has(object, key) : false;
   }
 
-  /**
-   * @param {any} object
-   * @param {any} key
-   * @returns {any}
-   */
   static #getKey(object, key) {
-    return Deep.#isObject(object) ? Reflect.get(object, key) : undefined;
+    return XModel.#isObject(object) ? Reflect.get(object, key) : undefined;
   }
 
-  /**
-   * @param {any} key
-   * @returns {[]|{}}
-   */
   static #getNext(key) {
     return Number.isInteger(key) ? [] : {};
   }
 
-  /**
-   * Split a path DSL into separate keys. 
-   * @param {string} path
-   * @throws Throws an error if path isn’t a string.
-   * @returns {string[]}
-   */
-  static pathToKeys(path) {
-    if (typeof path !== 'string') {
-      throw new Error('Path must be a string.');
-    }
-    if (Deep.#pathToKeysMap.has(path) === false) {
+  static #pathOrKeyToPath(path) {
+    path = typeof path === 'number' ? [path] : path;
+    path = typeof path === 'string' && !path.includes('.') ? [path] : path;
+    path = typeof path === 'string' ? XModel.#pathToKeys(path) : path;
+    return path;
+  }
+
+  static #pathToKeys(path) {
+    XModel.#deprecated('String-type path is deprecated. Use an array.');
+    if (XModel.#paths.has(path) === false) {
       const keys = path.split('.').map(key => {
         const intKey = Number.parseInt(key, 10);
         return intKey.toString() === key && intKey >= 0 ? intKey : key;
       });
-      this.freeze(keys);
-      Deep.#pathToKeysMap.set(path, keys);
+      XModel.#freeze(keys);
+      XModel.#paths.set(path, keys);
     }
-    return Deep.#pathToKeysMap.get(path);
+    return XModel.#paths.get(path);
   }
 
-  /**
-   * @overload
-   * @param {object} object
-   * @param {boolean} [shallow]
-   * @returns {object}
-   */
-
-  /**
-   * Deep (or shallow) clone given object.
-   * 
-   * @param {any} object
-   * @param {boolean} [shallow]
-   * @returns {any}
-   */
-  static clone(object, shallow) {
-    return Deep.#isObject(object)
-      ? shallow
-        ? Object.assign(object instanceof Array ? [] : {}, object)
-        : structuredClone(object)
-      : object;
+  static #deprecated(reason) {
+    const error = new Error(reason);
+    const stack = error.stack;
+    if (!this.#stacks.has(stack)) {
+      this.#stacks.add(stack);
+      setTimeout(() => { console.warn(error); }, 0); // eslint-disable-line no-console
+    }
   }
 
-  /**
-   * Deep-freeze the given value (if freezable).
-   * 
-   * @param {any} value
-   * @returns {void}
-   */
-  static freeze(value) {
+  static async #invalidate(model) {
+    const state = XModel.#models.get(model);
+    if (state.parent) {
+      XModel.#invalidate(state.root);
+    } else {
+      if (!state.invalid) {
+        const oldValue = model.getValue();
+        state.invalid = true;
+        await Promise.resolve();
+        state.invalid = false;
+        state.callback?.(oldValue, model.getValue());
+      }
+    }
+  }
+
+  static #update(model) {
+    const state = XModel.#models.get(model);
+    if (state.parent) {
+      const parentState = XModel.#models.get(state.parent);
+      state.root = parentState.root;
+      state.store = parentState.store;
+      state.path = [...parentState.path, state.key];
+      for (const child of state.children.values()) {
+        XModel.#update(child);
+      }
+    } else if (state.root !== this) {
+      state.root = this;
+      state.store = {};
+      state.path = [];
+      for (const child of state.children.values()) {
+        XModel.#update(child);
+      }
+    }
+  }
+
+  static #freeze(value) {
     if (!Object.isFrozen(value)) {
       Object.freeze(value);
-      if (Deep.#isObject(value)) {
+      if (XModel.#isObject(value)) {
         // Note, we ignore non-enumerable properties (Symbols) here.
-        Object.values(value).forEach(this.freeze, this);
+        Object.values(value).forEach(XModel.#freeze, this);
       }
     }
   }
 
-  /**
-   * Deep-equality check for any two arguments (versus check-by-reference).
-   * 
-   * @param {any} a
-   * @param {any} b
-   * @returns {boolean}
-   */
-  static equal(a, b) {
-    if (a === b) {
-      return true;
+  static #handleEvent(model, event) {
+    const modelState = XModel.#models.get(model);
+    const eventState = XModel.#events.get(event);
+    eventState.currentTarget = model;
+    const type = event.type;
+    for (const callback of modelState.listeners.get(type) ?? new Set()) {
+      if (!eventState.stopImmediatePropagation) {
+        // TODO: Validate that “false” or some such is not returned. We don’t
+        //  want to try and support that…
+        callback.apply(model, [event]);
+      }
     }
-    return (
-      Deep.#isObject(a) &&
-      Deep.#isObject(b) &&
-      // Note, we ignore non-enumerable properties (Symbols) here.
-      Object.keys(a).length === Object.keys(b).length &&
-      Object.keys(a).every(key => this.equal(a[key], b[key]))
-    );
+    if (!eventState.stopPropagation && event.bubbles && event.composed && modelState.parent) {
+      XModel.#handleEvent(modelState.parent, event);
+    }
   }
 
   /**
-   * Check if a value _exists_ at the given path.
-   * 
+   * Check if a value exists at some path in object.
    * @param {any} object
-   * @param {string} path
+   * @param {string|number|(string|number)[]} pathOrKey
    * @returns {boolean}
    */
-  static has(object, path) {
-    const keys = this.pathToKeys(path);
-    const lastIndex = keys.length - 1;
+  static has(object, pathOrKey) {
+    const path = XModel.#pathOrKeyToPath(pathOrKey);
+    const lastIndex = path.length - 1;
     let reference = object;
     for (let i = 0; i < lastIndex; i++) {
-      const key = keys[i];
-      if (Deep.#hasKey(reference, key) === false) {
+      const key = path[i];
+      if (XModel.#hasKey(reference, key) === false) {
         return false;
       }
-      reference = Deep.#getKey(reference, key);
+      reference = XModel.#getKey(reference, key);
     }
-    return Deep.#hasKey(reference, keys[lastIndex]);
+    return XModel.#hasKey(reference, path[lastIndex]);
   }
 
   /**
-   * Get value at the given path.
-   * 
+   * Get a value at some path in object.
    * @param {any} object
-   * @param {string} path
+   * @param {string|number|(string|number)[]} pathOrKey
    * @returns {any}
    */
-  static get(object, path) {
-    const keys = this.pathToKeys(path);
-    const lastIndex = keys.length - 1;
+  static get(object, pathOrKey) {
+    const path = XModel.#pathOrKeyToPath(pathOrKey);
+    const lastIndex = path.length - 1;
     let reference = object;
     for (let i = 0; i < lastIndex; i++) {
-      const key = keys[i];
-      if (Deep.#hasKey(reference, key) === false) {
+      const key = path[i];
+      if (!XModel.#hasKey(reference, key)) {
         return undefined;
       }
-      reference = Deep.#getKey(reference, key);
+      reference = XModel.#getKey(reference, key);
     }
-    return Deep.#getKey(reference, keys[lastIndex]);
+    return XModel.#getKey(reference, path[lastIndex]);
   }
 
   /**
-   * @overload
-   * @param {object} object
-   * @param {string} path
-   * @param {any} value
-   * @returns {object}
-   */
-
-  /**
-   * Get new object with value set at deeply nested path and fill in any missing
-   * branches.
-   * 
+   * Create a copy of the given object with a value set at the given path.
    * @param {any} object
-   * @param {string} path
+   * @param {string|number|(string|number)[]} pathOrKey
    * @param {any} value
    * @returns {any}
    */
-  static set(object, path, value) {
-    const keys = this.pathToKeys(path);
-    const lastIndex = keys.length - 1;
-    const lastKey = keys[lastIndex];
-    const nextValue = Deep.#isObject(object) ? this.clone(object, true) : Deep.#getNext(keys[0]);
+  static set(object, pathOrKey, value) {
+    const path = XModel.#pathOrKeyToPath(pathOrKey);
+    const lastIndex = path.length - 1;
+    const lastKey = path[lastIndex];
+    const nextValue = XModel.#isObject(object)
+      ? Object.assign(object instanceof Array ? [] : {}, object)
+      : XModel.#getNext(path[0]);
     let reference = nextValue;
     for (let i = 0; i < lastIndex; i++) {
-      const key = keys[i];
-      let child = Deep.#getKey(reference, key);
-      child = Deep.#isObject(child) ? this.clone(child, true) : Deep.#getNext(keys[i + 1]);
+      const key = path[i];
+      let child = XModel.#getKey(reference, key);
+      child = XModel.#isObject(child)
+        ? Object.assign(child instanceof Array ? [] : {}, child)
+        : XModel.#getNext(path[i + 1]);
       Reflect.set(reference, key, child);
       reference = child;
     }
-    if (value === Deep.#DELETE_SENTINEL) {
-      if (Reflect.has(reference, lastKey) === false) {
-        return object;
-      }
-      Reflect.deleteProperty(reference, lastKey);
+    if (Reflect.has(reference, lastKey) && Reflect.get(reference, lastKey) === value) {
+      return object;
     } else {
-      if (Reflect.has(reference, lastKey) && Reflect.get(reference, lastKey) === value) {
-        return object;
-      }
-      Reflect.set(reference, keys[lastIndex], value);
+      Reflect.set(reference, path[lastIndex], value);
+      return nextValue;
     }
-    return nextValue;
   }
 
   /**
-   * @overload
-   * @param {object} object
-   * @param {string} path
-   * @returns {object}
-   */
-
-  /**
-   * Get new object with value deleted at deeply nested path and fill in any
-   * missing branches.
-   * 
+   * Create a copy of the given object with a value deleted at the given path.
    * @param {any} object
-   * @param {string} path
+   * @param {string|number|(string|number)[]} pathOrKey
    * @returns {any}
    */
-  static delete(object, path) {
-    return this.set(object, path, Deep.#DELETE_SENTINEL);
+  static delete(object, pathOrKey) {
+    const path = XModel.#pathOrKeyToPath(pathOrKey);
+    const lastIndex = path.length - 1;
+    const lastKey = path[lastIndex];
+    const nextValue = XModel.#isObject(object)
+      ? Object.assign(object instanceof Array ? [] : {}, object)
+      : XModel.#getNext(path[0]);
+    let reference = nextValue;
+    for (let i = 0; i < lastIndex; i++) {
+      const key = path[i];
+      let child = XModel.#getKey(reference, key);
+      child = XModel.#isObject(child)
+        ? Object.assign(child instanceof Array ? [] : {}, child)
+        : XModel.#getNext(path[i + 1]);
+      Reflect.set(reference, key, child);
+      reference = child;
+    }
+    if (Reflect.has(reference, lastKey) === false) {
+      return object;
+    } else {
+      Reflect.deleteProperty(reference, lastKey);
+      return nextValue;
+    }
   }
-}
-
-/**
- * A simple state store which model trees use to house application state.
- */
-export class Store {
-  /** @type {object} */
-  #value = {};
 
   /**
-   * @callback Store~subscribeCallback
+   * Deprecated call to register model (when it used to be an HTMLElement).
+   * @deprecated
+   */
+  static register() {
+    XModel.#deprecated('The "register" method is no longer needed. You may safely delete this call.');
+  }
+
+  #invalidateIfChanged(a, b) {
+    if (a !== b) {
+      XModel.#invalidate(this);
+    }
+  }
+
+  /**
+   * @typedef {object} Input
+   * @param {any} [value]
+   */
+
+  /**
+   * Create a new XModel instance, while you can provide a “value” to initialize
+   * the model, this is being deprecated and you should prefer to assign a value
+   * _after_ instantiation.
+   * @param {Input} [input]
+   */
+  constructor(input) {
+    Object.assign(this.#state, {
+      root: this,
+      store: {},
+      path: [],
+      listeners: new Map(),
+      parent: null,
+      children: new Map(),
+      key: null,
+      invalid: false,
+      callback: null,
+    });
+    XModel.#models.set(this, this.#state);
+    input = input ?? {};
+    if (Reflect.has(input, 'value')) {
+      XModel.#deprecated('Initializing value on construction is deprecated. Set value after construction.');
+      this.setValue(Reflect.get(input, 'value'));
+    }
+  }
+
+  /**
+   * Get the root model’s store (which may be this model’s own store if root).
+   * @deprecated
+   * @throws Deprecation error.
+   * @returns {void}
+   */
+  get store() {
+    throw new Error('Access to store has been removed. Use ".value" to get value.');
+  }
+
+  /**
+   * Return the _string_ path concatenated by a “.” character.
+   * @deprecated
+   * @returns {null|string}
+   */
+  get path() {
+    XModel.#deprecated('Will return an array in the future. Use ".pathNext".');
+    return this.#state.path.join('.') || null;
+  }
+
+  /**
+   * Return the array of keys locating this model in the tree.
+   * @returns {string[]}
+   */
+  get pathNext() {
+    return this.#state.path;
+  }
+
+  /**
+   * Return the string which locates this model relative to its parent.
+   * @deprecated
+   * @returns {null|string}
+   */
+  get relativePath() {
+    XModel.#deprecated('Use ".key" instead of ".relativePath".');
+    return this.#state.key;
+  }
+
+  /**
+   * Return the string which locates this model relative to its parent.
+   * @returns {null|string}
+   */
+  get key() {
+    return this.#state.key;
+  }
+
+  /**
+   * Return a pointer to the model root (there is always a root).
+   * @returns {XModel}
+   */
+  get root() {
+    return this.#state.root;
+  }
+
+  /**
+   * Return a pointer to the model parent (if this is not the root model).
+   * @returns {null|XModel}
+   */
+  get parent() {
+    return this.#state.parent;
+  }
+
+  /**
+   * Convenience getter for current value, same as “getValue”.
+   * @returns {any}
+   */
+  get value() {
+    return this.getValue();
+  }
+
+  /**
+   * Convenience setter for current value, same as “setValue”.
+   * @param {any} value
+   * @returns {void}
+   */
+  set value(value) {
+    this.setValue(value);
+  }
+
+  /**
+   * Strict check for existence (e.g., even “undefined”).
+   * @returns {boolean}
+   */
+  hasValue() {
+    if (this.#state.parent) {
+      return XModel.has(this.#state.store, ['value', ...this.#state.path]);
+    } else {
+      return XModel.has(this.#state.store, ['value']);
+    }
+  }
+
+  /**
+   * Completely unsets store “value” (see {@link hasValue}).
+   * @returns {void}
+   */
+  deleteValue() {
+    if (this.#state.parent) {
+      const rootValue = XModel.delete(this.#state.store.value, this.#state.path);
+      this.#invalidateIfChanged(this.#state.store.value, rootValue);
+      XModel.#freeze(rootValue);
+      this.#state.store.value = rootValue;
+    } else {
+      const value = undefined;
+      this.#invalidateIfChanged(this.#state.store.value, value);
+      Reflect.deleteProperty(this.#state.store, 'value');
+    }
+  }
+
+  /**
+   * Get value for model, same as using {@link XModel#value} getter.
+   * @returns {any}
+   */
+  getValue() {
+    if (this.#state.parent) {
+      return XModel.get(this.#state.store.value, this.#state.path);
+    } else {
+      return this.#state.store.value;
+    }
+  }
+
+  /**
+   * Set value for model, same as using {@link XModel#value} setter.
+   * @param {any} [value]
+   * @returns {void}
+   */
+  setValue(value) {
+    if (this.#state.parent) {
+      const rootValue = XModel.set(this.#state.store.value, this.#state.path, value);
+      this.#invalidateIfChanged(this.#state.store.value, rootValue);
+      XModel.#freeze(rootValue);
+      this.#state.store.value = rootValue;
+    } else {
+      this.#invalidateIfChanged(this.#state.store.value, value);
+      XModel.#freeze(value);
+      this.#state.store.value = value;
+    }
+  }
+
+  /**
+   * Strict check for existence at given path (e.g., even “undefined”).
+   * @param {undefined|string|number|(string|number)[]} [pathOrKey]
+   * @returns {boolean}
+   */
+  has(pathOrKey) {
+    if (arguments.length === 0) {
+      XModel.#deprecated('Use "hasValue" to check for top-level value existence.');
+      return this.hasValue();
+    } else {
+      const path = XModel.#pathOrKeyToPath(pathOrKey);
+      if (this.#state.parent) {
+        return XModel.has(this.#state.store.value, [this.#state.path, ...path]);
+      } else {
+        return XModel.has(this.#state.store.value, path);
+      }
+    }
+  }
+
+  /**
+   * Delete value at path (if one exists).
+   * @param {string|number|(string|number)[]} [pathOrKey]
+   * @returns {void}
+   */
+  delete(pathOrKey) {
+    if (arguments.length === 0) {
+      XModel.#deprecated('Use "deleteValue" to delete top-level value.');
+      this.deleteValue();
+    } else {
+      const path = XModel.#pathOrKeyToPath(pathOrKey);
+      if (this.#state.parent) {
+        const rootValue = XModel.delete(this.#state.store.value, [this.#state.path, ...path]);
+        this.#invalidateIfChanged(this.#state.store.value, rootValue);
+        XModel.#freeze(rootValue);
+        this.#state.store.value = rootValue;
+      } else {
+        const rootValue = XModel.delete(this.#state.store.value, path);
+        this.#invalidateIfChanged(this.#state.store.value, rootValue);
+        XModel.#freeze(rootValue);
+        this.#state.store.value = rootValue;
+      }
+    }
+  }
+
+  /**
+   * Return value at path (if one exists).
+   * @param {string|number|(string|number)[]} [pathOrKey]
+   * @returns {any}
+   */
+  get(pathOrKey) {
+    if (arguments.length === 0) {
+      XModel.#deprecated('Use "getValue" or ".value" to get top-level value.');
+      return this.getValue();
+    } else {
+      const path = XModel.#pathOrKeyToPath(pathOrKey);
+      if (this.#state.parent) {
+        return XModel.get(this.#state.store.value, [this.#state.path, ...path]);
+      } else {
+        return XModel.get(this.#state.store.value, path);
+      }
+    }
+  }
+
+  /**
+   * Set value at path and create missing branches.
+   * @param {string|number|(string|number)[]} pathOrKey
+   * @param {any} [value]
+   * @returns {void}
+   */
+  set(pathOrKey, value) {
+    if (arguments.length === 1) {
+      XModel.#deprecated('Use "setValue" or ".value" to set top-level value.');
+      this.setValue(arguments[0]);
+    } else {
+      const path = XModel.#pathOrKeyToPath(pathOrKey);
+      if (this.#state.parent) {
+        const rootValue = XModel.set(this.#state.store.value, [this.#state.path, ...path], value);
+        this.#invalidateIfChanged(this.#state.store.value, rootValue);
+        XModel.#freeze(rootValue);
+        this.#state.store.value = rootValue;
+      } else {
+        const rootValue = XModel.set(this.#state.store.value, path, value);
+        this.#invalidateIfChanged(this.#state.store.value, rootValue);
+        XModel.#freeze(rootValue);
+        this.#state.store.value = rootValue;
+      }
+    }
+  }
+
+  /**
+   * See {@link delete}.
+   * @deprecated
+   * @param {string|number|(string|number)[]} [pathOrKey]
+   * @returns {void}
+   */
+  remove(pathOrKey) {
+    XModel.#deprecated('Use "delete" or "deleteValue" (versus "remove").');
+    if (arguments.length === 0) {
+      this.deleteValue();
+    } else {
+      this.delete(pathOrKey);
+    }
+  }
+
+  /**
+   * Callback for subscribers to model.
+   * @callback callback
    * @param {any} oldValue
    * @param {any} newValue
    *
    * @returns {any}
    */
 
-  /** @type {Store~subscribeCallback} */
-  #subscribeCallback = (oldValue, newValue) => {}; // eslint-disable-line no-unused-vars
-
-  /** @type {boolean} */
-  #invalid = false;
-
-  /**
-   * Returns the value of the store — typically a plain javascript object.
-   * 
-   * @returns {any}
-   */
-  get value() {
-    return this.#value.value;
-  }
-
-  /**
-   * Updates the value of the store and deep-freezes result to prevent
-   * tampering. Finally, it also queues up a notification to subscribers.
-   * 
-   * @param {any} [newValue]
-   */
-  set value(newValue) {
-    Deep.freeze(newValue);
-    this.invalidate();
-    this.#value.value = newValue;
-  }
-
-  /**
-   * Strict check for existence (e.g., even “undefined”).
-   * 
-   * @returns {boolean}
-   */
-  hasValue() {
-    return Reflect.has(this.#value, 'value');
-  }
-
-  /**
-   * Completely unsets store “value” (see {@link hasValue}).
-   * 
-   * @returns {void}
-   */
-  removeValue() {
-    this.invalidate();
-    Reflect.deleteProperty(this.#value, 'value');
-  }
-
-  /**
-   * @overload
-   * @returns {boolean}
-   */
-
-  /**
-   * Strict check for existence at given path (e.g., even “undefined”).
-   * 
-   * @param {string} [path]
-   * @returns {boolean}
-   */
-  has(path) {
-    if (arguments.length === 0) {
-      return this.hasValue();
-    }
-    return this.hasValue() ? Deep.has(this.value, path) : false;
-  }
-
-  /**
-   * @overload
-   * @returns {any}
-   */
-
-  /**
-   * Return value at path (if one exists).
-   * 
-   * @param {string} [path]
-   * @returns {any}
-   */
-  get(path) {
-    if (arguments.length === 0) {
-      return this.value;
-    }
-    return this.hasValue() ? Deep.get(this.value, path) : undefined;
-  }
-
-  /**
-   * @overload
-   * @param {any} path
-   * @returns {void}
-   */
-
-  /**
-   * @overload
-   * @param {string} path
-   * @param {any} value
-   * @returns {void}
-   */
-
-  /**
-   * Return value at path (if one exists).
-   * 
-   * @param {any|string} path
-   * @param {any} [value]
-   * @returns {void}
-   */
-  set(path, value) {
-    if (arguments.length === 1) {
-      this.value = path;
-    } else {
-      if (this.hasValue() === false) {
-        this.value = Number.isInteger(Deep.pathToKeys(path)[0]) ? [] : {};
-      }
-      this.value = Deep.set(this.value, path, value);
-    }
-  }
-
-  /**
-   * @overload
-   * @returns {void}
-   */
-
-  /**
-   * Return value at path (if one exists).
-   * 
-   * @param {string} [path]
-   * @returns {void}
-   */
-  remove(path) {
-    if (arguments.length === 0) {
-      this.removeValue();
-    } else {
-      if (this.hasValue() === false) {
-        this.value = Number.isInteger(Deep.pathToKeys(path)[0]) ? [] : {};
-      }
-      this.value = Deep.delete(this.value, path);
-    }
-  }
-
   /**
    * Subscribe to store changes. Latest subscriber wins.
-   * 
-   * @param {Store~subscribeCallback} callback
+   * @param {callback} callback
    * @throws Throws an error if callback is not a function.
    * @returns {void}
    */
   subscribe(callback) {
     if (callback instanceof Function) {
-      this.#subscribeCallback = callback;
-      this.#subscribeCallback(undefined, this.value);
+      this.#state.callback = callback;
+      this.#state.callback(undefined, this.getValue());
     } else {
       throw new Error('Subscribe callback must be a Function.');
     }
   }
 
   /**
-   * Mark the store as invalid, queuing a future callback to subscribers.
-   * 
-   * @returns {Promise<void>}
-   */
-  async invalidate() {
-    if (!this.#invalid) {
-      const oldValue = this.value;
-      this.#invalid = true;
-      await Promise.resolve();
-      this.#invalid = false;
-      this.#subscribeCallback(oldValue, this.value);
-    }
-  }
-}
-
-/**
- * XModel provides the following:
- *   1. Events.
- *   2. Deep object management.
- *   3. Delegated scope management.
- *
- * Note: HTMLElement lifecycle methods will not be called unless the model tree
- * is actually inserted into the DOM.
- */
-export class XModel extends HTMLElement {
-  /** @type {Store} */
-  #store = new Store();
-
-  /**
-   * Initial value can be passed as input.
-   * 
-   * @param {object} [input]
-   * @returns {void}
-   */
-  constructor(input) {
-    super();
-    input = input ?? {};
-    if (Reflect.has(input, 'value')) {
-      this.set(Reflect.get(input, 'value'));
-    }
-    this.attachShadow({ mode: 'open' });
-  }
-
-  /**
-   * Get the root model’s store (which may be this model’s own store if root).
-   * 
-   * @returns {Store}
-   */
-  get store() {
-    return this.isRoot ? this.#store : this.parent.store;
-  }
-
-  /**
-   * Get the value in the store which is managed by this model.
-   * 
-   * @returns {any}
-   */
-  get value() {
-    return this.get();
-  }
-
-  /**
-   * Simple check to determine if this model is the root of the model tree.
-   * 
+   * Check if this model is the root of the model tree.
    * @returns {boolean}
    */
-  get isRoot() {
-    // If host === "this", we are the root of an orphaned element tree.
-    const host = this.getRootNode().host;
-    return !(host instanceof XModel && host !== this);
+  isRoot() {
+    return this === this.#state.root;
   }
 
   /**
-   * Get the parent model object (if one exists).
-   * 
-   * @returns {null|XModel}
-   */
-  get parent() {
-    return this.isRoot ? null : this.getRootNode().host;
-  }
-
-  /**
-   * Get the full path to this model from the root.
-   * 
-   * @returns {undefined|string}
-   */
-  get path() {
-    return this.isRoot ? undefined : this.parent.resolve(this.relativePath);
-  }
-
-  /**
-   * Get the partial path that this model is mounted at relative to its parent.
-   * See {@link setChild} for context.
-   * 
-   * @returns {undefined|string}
-   */
-  get relativePath() {
-    // The “id” is the element id. See “setChild” for context.
-    return this.isRoot ? undefined : this.id;
-  }
-
-  /**
-   * Subscribe to store — only allowed on the root model.
-   * 
-   * @param {Store~subscribeCallback} callback
-   * @throws Throws an error if the target model is not the root model.
-   * @returns {void}
-   */
-  subscribe(callback) {
-    if (this.isRoot) {
-      this.store.subscribe(callback);
-    } else {
-      throw new Error('Subscriptions are not allowed on children.');
-    }
-  }
-
-  /**
-   * @overload
-   * @returns {boolean}
-   */
-
-  /**
-   * Checks if a path exists and accounts for nested model tree relativity.
-   * 
-   * @param {string} [relativePath]
-   * @returns {boolean}
-   */
-  has(relativePath) {
-    return this.isRoot
-      ? arguments.length === 0
-        ? this.store.has()
-        : this.store.has(relativePath)
-      : arguments.length === 0
-        ? this.store.has(this.path)
-        : this.store.has(this.resolve(relativePath));
-  }
-
-  /**
-   * @overload
-   * @returns {any}
-   */
-
-  /**
-   * Gets value at path and accounts for nested model tree relativity.
-   * 
-   * @param {string} [relativePath]
-   * @returns {any}
-   */
-  get(relativePath) {
-    return this.isRoot
-      ? arguments.length === 0
-        ? this.store.get()
-        : this.store.get(relativePath)
-      : arguments.length === 0
-        ? this.store.get(this.path)
-        : this.store.get(this.resolve(relativePath));
-  }
-
-  /**
-   * @overload
-   * @param {any} relativePath
-   * @returns {void}
-   */
-
-  /**
-   * @overload
-   * @param {string} relativePath
-   * @param {any} value
-   * @returns {void}
-   */
-
-  /**
-   * Return value at path (if one exists).
-   * 
-   * @param {any|string} relativePath
-   * @param {any} [value]
-   * @returns {void}
-   */
-  set(relativePath, value) {
-    this.isRoot
-      ? arguments.length === 1
-        ? this.store.set(relativePath)
-        : this.store.set(relativePath, value)
-      : arguments.length === 1
-        ? this.store.set(this.path, relativePath)
-        : this.store.set(this.resolve(relativePath), value);
-  }
-
-  /**
-   * @overload
-   * @returns {void}
-   */
-
-  /**
-   * Removes value at path and accounts for nested model tree relativity.
-   *
-   * @param {string} [relativePath]
-   * @returns {void}
-   * 
-   * Note, the end-comment tag has to be on the same line to ignore this.
-   * TypeScript raises an error here because “remove” has a different call
-   * signature from the parent HTMLElement class.
-   * @ts-ignore */
-  remove(relativePath) {
-    this.isRoot
-      ? arguments.length === 0
-        ? this.store.remove()
-        : this.store.remove(relativePath)
-      : arguments.length === 0
-        ? this.store.remove(this.path)
-        : this.store.remove(this.resolve(relativePath));
-  }
-
-  /**
-   * Get the full path from the root of the model tree.
-   * 
+   * Resolve full path _string_ for a relative path key.
+   * @deprecated
    * @param {string} relativePath
    * @returns {string}
    */
-  resolve(relativePath) {
-    return this.isRoot ? relativePath : `${this.path}.${relativePath}`;
+  resolvePath(relativePath) {
+    return this.isRoot() ? relativePath : `${this.path}.${relativePath}`;
   }
 
   /**
-   * Check if a child model is currently mounted at the given relative path.
-   * 
-   * @param {string} relativePath
+   * Check if a child model is currently mounted at the given relative path key.
+   * @param {string} key
    * @returns {boolean}
    */
-  hasChild(relativePath) {
-    return !!this.getChild(relativePath);
+  hasChild(key) {
+    if (typeof key !== 'string') {
+      throw new Error('Child keys must be strings.');
+    }
+    return this.#state.children.has(key);
   }
 
   /**
-   * Get child model mounted at the given relative path (if one exists).
-   * 
-   * @param {string} relativePath
+   * Get child model mounted at the given relative path key (if one exists).
+   * @param {string} key
    * @returns {null|XModel}
    */
-  getChild(relativePath) {
-    return this.shadowRoot.getElementById(relativePath);
+  getChild(key) {
+    if (typeof key !== 'string') {
+      throw new Error('Child keys must be strings.');
+    }
+    return this.#state.children.get(key) ?? null; // Returns null for backwards compat.
   }
 
   /**
-   * Mount child model at the given relative path.
-   * 
-   * @param {string} relativePath
+   * Mount child model at the given relative path key.
+   * @deprecated
+   * @param {string} key
    * @param {XModel} child
    * @returns {void}
    */
-  setChild(relativePath, child) {
-    // Ensure that we don't accidentally have two children with the same id.
-    this.deleteChild(relativePath);
-    // Add id first so that child can set on store during connectedCallback.
-    child.id = relativePath;
-    this.shadowRoot.append(child);
+  setChild(key, child) {
+    XModel.#deprecated('The "setChild" method is deprecated. Use "attachChild".');
+    this.attachChild(key, child);
   }
 
   /**
-   * Delete child at the given relative path (if one exists)
-   * 
-   * @param relativePath
+   * Mount child model at the given relative path key.
+   * @param {string} key
+   * @param {XModel} child
+   * @returns {void}
+   */
+  attachChild(key, child) {
+    if (typeof key !== 'string') {
+      throw new Error('Child keys must be strings.');
+    }
+    if (!(child instanceof XModel)) {
+      throw new Error('Child must inherit from "XModel".');
+    }
+    if (this.#state.children.get(key) !== child) {
+      this.detachChild(key);
+      child.parent?.detachChild(child.key);
+      this.#state.children.set(key, child);
+      const childState = XModel.#models.get(child);
+      childState.parent = this;
+      childState.key = key;
+      childState.callback = null;
+      XModel.#update(child);
+    }
+  }
+
+  /**
+   * Delete child at the given relative path key (if one exists)
+   * @deprecated
+   * @param key
    * @throws Throws if a relative path is not specified.
    * @returns {void}
    */
-  deleteChild(relativePath) {
-    if (!relativePath) {
-      throw new Error('Child models must specify a relativePath.');
-    }
-    if (this.hasChild(relativePath)) {
-      this.shadowRoot.removeChild(this.getChild(relativePath));
-    }
+  deleteChild(key) {
+    XModel.#deprecated('The "deleteChild" method is deprecated. Use "detachChild".');
+    this.detachChild(key);
   }
 
   /**
-   * Because XModel leverages HTMLElement’s and shadow roots, we must define a
-   * new tag in the custom element registry. Note that names are de-duped such
-   * that XModel class names can be repeated (if necessary).
-   * 
+   * Detach child at the given relative path key (if one exists)
+   * @param key
+   * @throws Throws if a relative path is not specified.
    * @returns {void}
    */
-  static register() {
-    // Note that this will throw if "this" or "tag" are ever registered twice.
-    let tag = this.name[0].toLowerCase() + this.name.slice(1);
-    tag = tag.replace(/([A-Z])/g, '-$1').toLowerCase();
-    tag = !tag.includes('-') ? `${tag}-model` : tag;
-    tag = XModel.#dedupe(tag);
-    customElements.define(tag, this);
+  detachChild(key) {
+    if (typeof key !== 'string') {
+      throw new Error('Child keys must be strings.');
+    }
+    const child = this.#state.children.get(key);
+    if (child) {
+      this.#state.children.delete(key);
+      const childState = XModel.#models.get(child);
+      childState.parent = null;
+      childState.key = null;
+      XModel.#update(child);
+    }
   }
 
   /**
-   * Simple helper to de-dupe registered tag names.
-   * 
-   * @param {string} candidate
-   * @returns {string}
+   * Mount child model into given parent at the given relative path key.
+   * @param {string} key
+   * @param {XModel} parent
+   * @returns {void}
    */
-  static #dedupe(candidate) {
-    // Either class name duplication or minification can create a duplicate tag
-    //  name. This is a fail-safe to prevent that. It preserves the original
-    //  candidate name as a prefix and ensures the entire tag name has not yet
-    //  been registered.
-    const original = candidate;
-    const letters = 'abcdefghijklmnopqrstuvwxyz';
-    while (customElements.get(candidate)) {
-      let suffix = '';
-      for (let iii = 0; iii < 10; iii++) {
-        suffix += letters[Math.floor(Math.random() * letters.length)];
-      }
-      candidate = `${original}-${suffix}`;
+  attach(key, parent) {
+    if (typeof key !== 'string') {
+      throw new Error('Child keys must be strings.');
     }
-    return candidate;
+    if (!(parent instanceof XModel)) {
+      throw new Error('Parent must inherit from "XModel".');
+    }
+    parent.attachChild(key, this);
+  }
+
+  /**
+   * Unmount child model from model tree (i.e., makes it a new root of a tree).
+   * @returns {void}
+   */
+  detach() {
+    this.parent?.detachChild(this.key);
+  }
+
+  /**
+   * Callback for “addEventListener”.
+   * @callback listener
+   * @param {Event} event
+   * @returns {void}
+   */
+
+  /**
+   * Strict subset of “EventTarget.addEventListener”.
+   * @param {string} type
+   * @param {listener} callback
+   * @throws Throws for invalid arguments / call signature.
+   * @returns {void}
+   */
+  addEventListener(type, callback/*, options*/) {
+    if (typeof type !== 'string') {
+      throw new Error('Expected "type" argument to be a "string".');
+    }
+    if (typeof callback !== 'function') {
+      throw new Error('Expected "callback" argument to be a "function".');
+    }
+    if (arguments.length > 2) {
+      throw new Error('Expected exactly two arguments.');
+    }
+    if (!this.#state.listeners.get(type)) {
+      this.#state.listeners.set(type, new Set());
+    }
+    this.#state.listeners.get(type).add(callback);
+  }
+
+  /**
+   * Strict subset of “EventTarget.removeEventListener”.
+   * @param {string} type
+   * @param {listener} callback
+   * @throws Throws for invalid arguments / call signature.
+   * @returns {void}
+   */
+  removeEventListener(type, callback/*, options*/) {
+    if (typeof type !== 'string') {
+      throw new Error('Expected "type" argument to be a "string".');
+    }
+    if (typeof callback !== 'function') {
+      throw new Error('Expected "callback" argument to be a "function".');
+    }
+    if (arguments.length > 2) {
+      throw new Error('Expected exactly two arguments.');
+    }
+    this.#state.listeners.get(type)?.delete(callback);
+  }
+
+  /**
+   * Strict subset of “EventTarget.dispatchEvent”.
+   * @param {Event} event
+   * @throws Throws for invalid configuration.
+   * @returns {void}
+   */
+  dispatchEvent(event) {
+    // TODO: Assert always bubbles: true / composed: true. Assert many things…
+    //  E.g., don’t support capture or anything like that…
+    const composedPath = () => {
+      // TODO: We could walk the tree to determine this information.
+      throw new Error('The composedPath method is not yet supported.');
+    };
+    const proxy = new Proxy(event, {
+      get(target, property) {
+        const eventState = XModel.#events.get(proxy);
+        switch (property) {
+          case 'stopPropagation':
+            eventState.stopPropagation = true;
+            return target.stopPropagation.bind(event);
+          case 'stopImmediatePropagation':
+            eventState.stopPropagation = true;
+            eventState.stopImmediatePropagation = true;
+            return target.stopImmediatePropagation.bind(event);
+          case 'composedPath':
+            return composedPath;
+          case 'target':
+            return eventState.target;
+          case 'currentTarget':
+            return eventState.currentTarget;
+          default:
+            return target[property];
+        }
+      },
+    });
+    const eventState = { target: this, stopPropagation: false, stopImmediatePropagation: false };
+    XModel.#events.set(proxy, eventState);
+    XModel.#handleEvent(this, proxy);
   }
 }
-
-// Models are elements and need to be registered to use.
-XModel.register();

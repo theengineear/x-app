@@ -1,8 +1,4 @@
 /**
- * @typedef {import('./x-model.js').XModel} XModel
- */
-
-/**
  * Generic controller for MVC architecture.
  * 
  * All controllers should take a “model” and a “view” as arguments. The point of
@@ -31,6 +27,13 @@
  * ```
  */
 export class XController {
+  /**
+   * TODO: TypeScript somehow thinks we want to import from the “.d.ts” file
+   * when we try and import our XModel typedef here. This is just a workaround.
+   * Ideally, we could just (at)import it.
+   * @typedef {object} XModel
+   */
+
   /**
    * Prefer to override {@link XController.initialize} versus constructor.
    * 

@@ -24,14 +24,14 @@ export class XRouter {
      * @property {string[]} tokens
      */
     /** @type {Map<string, Route>} */
-    static "__#3@#patterns": Map<string, {
+    static "__#2@#patterns": Map<string, {
         pattern: string;
         callback: (url: URL, params: Map<any, any>) => any;
         regex: RegExp;
         tokens: string[];
     }>;
     /** @type {routeCallback} */
-    static "__#3@#wildcard": (url: URL, params: Map<any, any>) => any;
+    static "__#2@#wildcard": (url: URL, params: Map<any, any>) => any;
     /**
      * Set a pattern and an associated callback.
      *
