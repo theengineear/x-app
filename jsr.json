@@ -1,6 +1,6 @@
 {
   "name": "@import/x-app",
-  "version": "1.0.0-rc.7",
+  "version": "1.0.0-rc.8",
   "exports": {
     "./x-controller.js": "./x-controller.js",
     "./x-model.js": "./x-model.js",
