@@ -1,6 +1,6 @@
 {
   "name": "@import/x-app",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.6",
   "exports": {
     "./ts/x-controller.d.ts": "./ts/x-controller.d.ts",
     "./ts/x-model.d.ts": "./ts/x-model.d.ts",
