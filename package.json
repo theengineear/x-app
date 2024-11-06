@@ -7,15 +7,16 @@
   "type": "module",
   "exports": {
     "./x-controller.js": "./x-controller.js",
-    "./x-controller.d.ts": "./x-controller.d.ts",
     "./x-model.js": "./x-model.js",
-    "./x-model.d.ts": "./x-model.d.ts",
     "./x-router.js": "./x-router.js",
-    "./x-router.d.ts": "./x-router.d.ts",
+    "./x-style.css": "./x-style.css",
     "./x-style.js": "./x-style.js",
-    "./x-style.d.ts": "./x-style.d.ts",
     "./x-switch.js": "./x-switch.js",
-    "./x-switch.d.ts": "./x-switch.d.ts"
+    "./ts/x-controller.d.ts": "./ts/x-controller.d.ts",
+    "./ts/x-model.d.ts": "./ts/x-model.d.ts",
+    "./ts/x-router.d.ts": "./ts/x-router.d.ts",
+    "./ts/x-style.d.ts": "./ts/x-style.d.ts",
+    "./ts/x-switch.d.ts": "./ts/x-switch.d.ts"
   },
   "publishConfig": {
     "access": "public",
@@ -29,20 +30,21 @@
   },
   "files": [
     "./x-controller.js",
-    "./x-controller.d.ts",
-    "./x-controller.d.ts.map",
     "./x-model.js",
-    "./x-model.d.ts",
-    "./x-model.d.ts.map",
     "./x-router.js",
-    "./x-router.d.ts",
-    "./x-router.d.ts.map",
+    "./x-style.css",
     "./x-style.js",
-    "./x-style.d.ts",
-    "./x-style.d.ts.map",
     "./x-switch.js",
-    "./x-switch.d.ts",
-    "./x-switch.d.ts.map"
+    "./ts/x-controller.d.ts",
+    "./ts/x-controller.d.ts.map",
+    "./ts/x-model.d.ts",
+    "./ts/x-model.d.ts.map",
+    "./ts/x-router.d.ts",
+    "./ts/x-router.d.ts.map",
+    "./ts/x-style.d.ts",
+    "./ts/x-style.d.ts.map",
+    "./ts/x-switch.d.ts",
+    "./ts/x-switch.d.ts.map"
   ],
   "devDependencies": {
     "@netflix/x-test": "1.0.1",

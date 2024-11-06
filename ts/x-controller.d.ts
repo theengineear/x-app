@@ -1,3 +1,4 @@
+/** @import { XModel } from './x-model.js' */
 /**
  * Generic controller for MVC architecture.
  *
@@ -34,7 +35,7 @@ export class XController {
      * @param {XModel} model
      * @param {HTMLElement} view
      */
-    static initialize(model: any, view: HTMLElement): void;
+    static initialize(model: XModel, view: HTMLElement): void;
     /**
      * By default, bind new model value to view when it changes.
      *
@@ -49,19 +50,14 @@ export class XController {
      * @param {XModel} model
      * @param {HTMLElement} view
      */
-    static configureListeners(model: any, view: HTMLElement): void;
-    /**
-     * TODO: TypeScript somehow thinks we want to import from the “.d.ts” file
-     * when we try and import our XModel typedef here. This is just a workaround.
-     * Ideally, we could just (at)import it.
-     * @typedef {object} XModel
-     */
+    static configureListeners(model: XModel, view: HTMLElement): void;
     /**
      * Prefer to override {@link XController.initialize} versus constructor.
      *
      * @param {XModel} model
      * @param {HTMLElement} view
      */
-    constructor(model: any, view: HTMLElement);
+    constructor(model: XModel, view: HTMLElement);
 }
+import type { XModel } from './x-model.js';
 //# sourceMappingURL=x-controller.d.ts.map
