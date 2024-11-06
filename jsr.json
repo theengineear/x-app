@@ -2,19 +2,20 @@
   "name": "@import/x-app",
   "version": "1.0.0-rc.5",
   "exports": {
-    "./x-controller.d.ts": "./x-controller.d.ts",
-    "./x-model.d.ts": "./x-model.d.ts",
-    "./x-router.d.ts": "./x-router.d.ts",
-    "./x-style.d.ts": "./x-style.d.ts",
-    "./x-switch.d.ts": "./x-switch.d.ts"
+    "./ts/x-controller.d.ts": "./ts/x-controller.d.ts",
+    "./ts/x-model.d.ts": "./ts/x-model.d.ts",
+    "./ts/x-router.d.ts": "./ts/x-router.d.ts",
+    "./ts/x-style.d.ts": "./ts/x-style.d.ts",
+    "./ts/x-switch.d.ts": "./ts/x-switch.d.ts"
   },
   "include": [
     "./x-controller.js",
     "./x-model.js",
     "./x-router.js",
+    "./x-style.css",
     "./x-style.js",
     "./x-switch.js",
-    "./*.d.ts",
-    "./*.d.ts.map"
+    "./ts/*.d.ts",
+    "./ts/*.d.ts.map"
   ]
 }
