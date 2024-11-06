@@ -3,7 +3,7 @@
   "description": "minimal building blocks for web applications",
   "version": "1.0.0-rc.7",
   "license": "Apache-2.0",
-  "repository": "https://github.com/theengineear/x-app",
+  "repository": "github:theengineear/x-app",
   "type": "module",
   "exports": {
     "./x-controller.js": "./x-controller.js",
@@ -16,10 +16,6 @@
     "./ts/x-router.d.ts": "./ts/x-router.d.ts",
     "./ts/x-style.d.ts": "./ts/x-style.d.ts",
     "./ts/x-switch.d.ts": "./ts/x-switch.d.ts"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "lint": "eslint --max-warnings=0 .",
