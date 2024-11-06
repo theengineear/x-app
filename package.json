@@ -1,7 +1,7 @@
 {
   "name": "@theengineear/x-app",
   "description": "minimal building blocks for web applications",
-  "version": "1.0.0-rc.6",
+  "version": "1.0.0-rc.7",
   "license": "Apache-2.0",
   "repository": "https://github.com/theengineear/x-app",
   "type": "module",
